@@ -7,6 +7,7 @@ import MainLayout from './components/MainLayout'
 import './App.css'
 import SalesManagement from './components/Pages/SalesManagement'
 import ProdukManagement from './components/Pages/ProdukManagement'
+import CustomerManagement from './components/Pages/CustomerManagement'
 
 function App() {
   const [count, setCount] = useState(0)
@@ -17,6 +18,8 @@ function App() {
     <Route path='/' element={<Dashboard />} />
     <Route path= "/penjualan" element = {<SalesManagement/>} />
     <Route path= "/produk" element = {<ProdukManagement/>} />
+    <Route path= "/pelanggan" element = {<CustomerManagement/>} />
+
     
     </Route>
    </Routes>
