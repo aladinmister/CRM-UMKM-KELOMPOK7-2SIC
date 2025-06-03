@@ -1,17 +1,22 @@
-import React, { useState } from "react";
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 
-export default function UploadProduk({ onSubmit }) {
-  const [formData, setFormData] = useState({
+export default function UploadProduk({ tambahProduk }) {
+  const [form, setForm] = useState({
     name: "",
     category: "",
     stock: "",
     price: "",
+    supplier: "",
+    description: "",
     active: true,
   });
 
+  const navigate = useNavigate();
+
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
-    setFormData((prev) => ({
+    setForm((prev) => ({
       ...prev,
       [name]: type === "checkbox" ? checked : value,
     }));
@@ -19,102 +24,132 @@ export default function UploadProduk({ onSubmit }) {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-
-    if (!formData.name || !formData.category || !formData.stock || !formData.price) {
-      alert("Semua kolom harus diisi.");
+    if (!form.name || !form.category || !form.stock || !form.price) {
+      alert("Semua kolom wajib diisi");
       return;
     }
-
-    const newProduct = {
-      ...formData,
-      stock: parseInt(formData.stock),
-      price: parseFloat(formData.price),
-    };
-
-    // Kirim data ke parent / simpan ke database
-    if (onSubmit) {
-      onSubmit(newProduct);
-    }
-
-    // Reset form
-    setFormData({ name: "", category: "", stock: "", price: "", active: true });
-    alert("Produk berhasil ditambahkan.");
+    tambahProduk({
+      ...form,
+      stock: parseInt(form.stock),
+      price: parseFloat(form.price),
+    });
+    navigate("/produk");
   };
 
   return (
-    <div className="p-6 max-w-xl mx-auto bg-white rounded shadow">
-      <h2 className="text-xl font-semibold mb-4">Form Input Sparepart Bengkel</h2>
-
-      <form onSubmit={handleSubmit}>
-        <div className="mb-4">
-          <label className="block mb-1 font-medium">Nama Sparepart</label>
+    <div className="bg-white shadow rounded p-8 max-w-xl mx-auto">
+      <h2 className="text-2xl font-semibold mb-6 text-gray-800">
+        Tambah Produk Baru
+      </h2>
+      <form onSubmit={handleSubmit} className="grid grid-cols-2 gap-6">
+        {/* Nama Produk - full width */}
+        <div className="col-span-2">
+          <label className="block mb-1 font-medium text-gray-700">Nama Produk</label>
           <input
             type="text"
             name="name"
-            value={formData.name}
+            value={form.name}
             onChange={handleChange}
-            placeholder="Contoh: Filter Udara"
-            className="w-full px-3 py-2 border rounded focus:ring-blue-400 focus:outline-none"
+            placeholder="Masukkan nama produk"
+            className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-400"
+            required
           />
         </div>
 
-        <div className="mb-4">
-          <label className="block mb-1 font-medium">Kategori</label>
+        {/* Kategori */}
+        <div>
+          <label className="block mb-1 font-medium text-gray-700">Kategori</label>
           <input
             type="text"
             name="category"
-            value={formData.category}
+            value={form.category}
             onChange={handleChange}
-            placeholder="Contoh: Mesin, Rem, Elektrik"
-            className="w-full px-3 py-2 border rounded focus:ring-blue-400 focus:outline-none"
+            placeholder="Masukkan kategori produk"
+            className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-400"
+            required
           />
         </div>
 
-        <div className="mb-4">
-          <label className="block mb-1 font-medium">Jumlah Stok</label>
+        {/* Supplier */}
+        <div>
+          <label className="block mb-1 font-medium text-gray-700">Supplier (Opsional)</label>
+          <input
+            type="text"
+            name="supplier"
+            value={form.supplier}
+            onChange={handleChange}
+            placeholder="Masukkan nama supplier"
+            className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-400"
+          />
+        </div>
+
+        {/* Stok */}
+        <div>
+          <label className="block mb-1 font-medium text-gray-700">Stok</label>
           <input
             type="number"
             name="stock"
-            value={formData.stock}
+            value={form.stock}
             onChange={handleChange}
+            placeholder="Masukkan stok produk"
             min="0"
-            placeholder="Masukkan stok"
-            className="w-full px-3 py-2 border rounded focus:ring-blue-400 focus:outline-none"
+            className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-400"
+            required
           />
         </div>
 
-        <div className="mb-4">
-          <label className="block mb-1 font-medium">Harga</label>
+        {/* Harga */}
+        <div>
+          <label className="block mb-1 font-medium text-gray-700">Harga</label>
           <input
             type="number"
             name="price"
-            value={formData.price}
+            value={form.price}
             onChange={handleChange}
+            placeholder="Masukkan harga produk"
             min="0"
-            placeholder="Masukkan harga"
-            className="w-full px-3 py-2 border rounded focus:ring-blue-400 focus:outline-none"
+            className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-400"
+            required
           />
         </div>
 
-        <div className="mb-4">
-          <label className="inline-flex items-center">
-            <input
-              type="checkbox"
-              name="active"
-              checked={formData.active}
-              onChange={handleChange}
-              className="mr-2"
-            />
-            Tampilkan di sistem
+        {/* Deskripsi - full width */}
+        <div className="col-span-2">
+          <label className="block mb-1 font-medium text-gray-700">Deskripsi (Opsional)</label>
+          <textarea
+            name="description"
+            value={form.description}
+            onChange={handleChange}
+            placeholder="Masukkan deskripsi produk"
+            rows="3"
+            className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-400"
+          />
+        </div>
+
+        {/* Checkbox Aktif - full width */}
+        <div className="col-span-2 flex items-center">
+          <input
+            type="checkbox"
+            name="active"
+            checked={form.active}
+            onChange={handleChange}
+            className="mr-2"
+            id="activeCheckbox"
+          />
+          <label htmlFor="activeCheckbox" className="font-medium text-gray-700">
+            Aktif
           </label>
         </div>
 
-        <button
-          type="submit"
-          className="w-full py-2 px-4 bg-green-600 text-white rounded hover:bg-green-700"
-        >
-          Simpan Sparepart
-        </button>
+        {/* Button submit - full width */}
+        <div className="col-span-2">
+          <button
+            type="submit"
+            className="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-md transition"
+          >
+            Simpan Produk
+          </button>
+        </div>
       </form>
     </div>
   );

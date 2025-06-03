@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import DataTable from "react-data-table-component";
 
 const dummyCustomers = [
   { id: 1, name: "Budi Santoso" },
@@ -42,6 +43,7 @@ export default function SalesManagement() {
     total: "",
     status: "Belum Lunas",
   });
+  const [filterText, setFilterText] = useState("");
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -91,173 +93,214 @@ export default function SalesManagement() {
     return cust ? cust.name : "-";
   };
 
-  return (
-    <div className="p-6 max-w-5xl mx-auto">
-      <h1 className="text-2xl font-semibold mb-4">Management Penjualan</h1>
+  const filteredSales = sales.filter((s) => {
+    const customerName = getCustomerName(s.customerId);
+    return (
+      s.invoice.toLowerCase().includes(filterText.toLowerCase()) ||
+      customerName.toLowerCase().includes(filterText.toLowerCase()) ||
+      s.date.toLowerCase().includes(filterText.toLowerCase()) ||
+      s.status.toLowerCase().includes(filterText.toLowerCase())
+    );
+  });
 
-      <button
-        onClick={() => setShowForm((prev) => !prev)}
-        className="mb-4 px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700 transition"
-      >
-        {showForm ? "Batal Tambah Penjualan" : "Tambah Penjualan"}
-      </button>
-
-      {showForm && (
-        <div className="mb-6 p-4 border border-gray-300 rounded shadow-sm bg-white">
-          <div className="mb-2">
-            <label className="block font-medium mb-1">Nomor Invoice</label>
-            <input
-              type="text"
-              name="invoice"
-              value={formData.invoice}
-              onChange={handleInputChange}
-              placeholder="Misal: INV-003"
-              className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-indigo-400"
-            />
-          </div>
-
-          <div className="mb-2">
-            <label className="block font-medium mb-1">Pelanggan</label>
-            <select
-              name="customerId"
-              value={formData.customerId}
-              onChange={handleInputChange}
-              className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-indigo-400"
-            >
-              <option value="">-- Pilih Pelanggan --</option>
-              {dummyCustomers.map((c) => (
-                <option key={c.id} value={c.id}>
-                  {c.name}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <div className="mb-2">
-            <label className="block font-medium mb-1">Tanggal</label>
-            <input
-              type="date"
-              name="date"
-              value={formData.date}
-              onChange={handleInputChange}
-              className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-indigo-400"
-            />
-          </div>
-
-          <div className="mb-2">
-            <label className="block font-medium mb-1">Total (Rp)</label>
-            <input
-              type="number"
-              name="total"
-              value={formData.total}
-              onChange={handleInputChange}
-              placeholder="Jumlah total penjualan"
-              className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-indigo-400"
-              min="0"
-            />
-          </div>
-
-          <div className="mb-4">
-            <label className="block font-medium mb-1">Status</label>
-            <select
-              name="status"
-              value={formData.status}
-              onChange={handleInputChange}
-              className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-indigo-400"
-            >
-              <option value="Belum Lunas">Belum Lunas</option>
-              <option value="Lunas">Lunas</option>
-              <option value="Batal">Batal</option>
-            </select>
-          </div>
-
+  const columns = [
+    {
+      name: "Invoice",
+      selector: (row) => row.invoice,
+      sortable: true,
+    },
+    {
+      name: "Pelanggan",
+      selector: (row) => getCustomerName(row.customerId),
+      sortable: true,
+    },
+    {
+      name: "Tanggal",
+      selector: (row) => row.date,
+      sortable: true,
+      sortFunction: (a, b) => new Date(a.date) - new Date(b.date),
+    },
+    {
+      name: "Total",
+      selector: (row) => row.total,
+      sortable: true,
+      right: true,
+      cell: (row) => formatCurrency(row.total),
+    },
+    {
+      name: "Status",
+      selector: (row) => row.status,
+      sortable: true,
+      center: true,
+      cell: (row) => {
+        if (row.status === "Lunas") {
+          return (
+            <span className="inline-flex px-2 text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
+              Lunas
+            </span>
+          );
+        } else if (row.status === "Belum Lunas") {
+          return (
+            <span className="inline-flex px-2 text-xs leading-5 font-semibold rounded-full bg-yellow-100 text-yellow-800">
+              Belum Lunas
+            </span>
+          );
+        } else {
+          return (
+            <span className="inline-flex px-2 text-xs leading-5 font-semibold rounded-full bg-red-100 text-red-800">
+              Batal
+            </span>
+          );
+        }
+      },
+    },
+    {
+      name: "Aksi",
+      center: true,
+      cell: (row) => (
+        <div className="space-x-4">
           <button
-            onClick={handleAddSale}
-            className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 transition"
+            className="text-indigo-600 hover:text-indigo-900 font-semibold"
+            onClick={() => alert("Fitur Edit belum tersedia")}
           >
-            Simpan
+            Edit
+          </button>
+          <button
+            className="text-red-600 hover:text-red-900 font-semibold"
+            onClick={() => handleDelete(row.id)}
+          >
+            Hapus
           </button>
         </div>
-      )}
+      ),
+      ignoreRowClick: true,
+      allowOverflow: true,
+      button: true,
+      width: "130px",
+    },
+  ];
 
-      <div className="overflow-x-auto bg-white rounded shadow">
-        <table className="min-w-full divide-y divide-gray-200">
-          <thead className="bg-gray-50">
-            <tr>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Invoice
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Pelanggan
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Tanggal
-              </th>
-              <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Total
-              </th>
-              <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Status
-              </th>
-              <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Aksi
-              </th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-gray-200">
-            {sales.map((sale) => (
-              <tr key={sale.id} className="hover:bg-gray-50">
-                <td className="px-6 py-4 whitespace-nowrap">{sale.invoice}</td>
-                <td className="px-6 py-4 whitespace-nowrap">
-                  {getCustomerName(sale.customerId)}
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap">{sale.date}</td>
-                <td className="px-6 py-4 whitespace-nowrap text-right">
-                  {formatCurrency(sale.total)}
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-center">
-                  {sale.status === "Lunas" ? (
-                    <span className="inline-flex px-2 text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
-                      Lunas
-                    </span>
-                  ) : sale.status === "Belum Lunas" ? (
-                    <span className="inline-flex px-2 text-xs leading-5 font-semibold rounded-full bg-yellow-100 text-yellow-800">
-                      Belum Lunas
-                    </span>
-                  ) : (
-                    <span className="inline-flex px-2 text-xs leading-5 font-semibold rounded-full bg-red-100 text-red-800">
-                      Batal
-                    </span>
-                  )}
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-center space-x-2">
-                  <button
-                    className="text-indigo-600 hover:text-indigo-900 font-semibold"
-                    onClick={() => alert("Fitur Edit belum tersedia")}
-                  >
-                    Edit
-                  </button>
-                  <button
-                    className="text-red-600 hover:text-red-900 font-semibold"
-                    onClick={() => handleDelete(sale.id)}
-                  >
-                    Hapus
-                  </button>
-                </td>
-              </tr>
-            ))}
-            {sales.length === 0 && (
-              <tr>
-                <td colSpan={6} className="text-center py-4 text-gray-500">
-                  Tidak ada data penjualan
-                </td>
-              </tr>
-            )}
-          </tbody>
-        </table>
+  return (
+    <div className="max-w-7xl mx-auto p-6">
+      <div className="bg-white rounded-lg shadow-md p-6">
+        {/* Header with title and button */}
+        <div className="flex justify-between items-center mb-4">
+          <h1 className="text-2xl font-semibold">Management Penjualan</h1>
+          <button
+            onClick={() => setShowForm((prev) => !prev)}
+            className="px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700 transition"
+          >
+            {showForm ? "Batal Tambah Penjualan" : "Tambah Penjualan"}
+          </button>
+        </div>
+
+        {/* Search input below */}
+     {/* Search input below */}
+<div className="mb-6">
+  <input
+    type="text"
+    placeholder="Cari invoice, pelanggan, tanggal, status..."
+    value={filterText}
+    onChange={(e) => setFilterText(e.target.value)}
+    className="w-64 px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-indigo-400"
+  />
+</div>
+
+
+        {/* Form tambah data */}
+        {showForm && (
+          <div className="mb-6 p-4 border border-gray-300 rounded shadow-sm bg-gray-50">
+            <div className="mb-4 grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block font-medium mb-1">Nomor Invoice</label>
+                <input
+                  type="text"
+                  name="invoice"
+                  value={formData.invoice}
+                  onChange={handleInputChange}
+                  placeholder="Misal: INV-003"
+                  className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-indigo-400"
+                />
+              </div>
+
+              <div>
+                <label className="block font-medium mb-1">Pelanggan</label>
+                <select
+                  name="customerId"
+                  value={formData.customerId}
+                  onChange={handleInputChange}
+                  className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-indigo-400"
+                >
+                  <option value="">-- Pilih Pelanggan --</option>
+                  {dummyCustomers.map((c) => (
+                    <option key={c.id} value={c.id}>
+                      {c.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="block font-medium mb-1">Tanggal</label>
+                <input
+                  type="date"
+                  name="date"
+                  value={formData.date}
+                  onChange={handleInputChange}
+                  className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-indigo-400"
+                />
+              </div>
+
+              <div>
+                <label className="block font-medium mb-1">Total (Rp)</label>
+                <input
+                  type="number"
+                  name="total"
+                  value={formData.total}
+                  onChange={handleInputChange}
+                  placeholder="Jumlah total penjualan"
+                  className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-indigo-400"
+                  min="0"
+                />
+              </div>
+
+              <div>
+                <label className="block font-medium mb-1">Status</label>
+                <select
+                  name="status"
+                  value={formData.status}
+                  onChange={handleInputChange}
+                  className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-indigo-400"
+                >
+                  <option value="Belum Lunas">Belum Lunas</option>
+                  <option value="Lunas">Lunas</option>
+                  <option value="Batal">Batal</option>
+                </select>
+              </div>
+            </div>
+
+            <button
+              onClick={handleAddSale}
+              className="px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700 transition"
+            >
+              Simpan
+            </button>
+          </div>
+        )}
+
+        {/* Table */}
+        <DataTable
+          columns={columns}
+          data={filteredSales}
+          pagination
+          highlightOnHover
+          pointerOnHover
+          noDataComponent="Tidak ada data penjualan"
+          responsive
+          striped
+          dense
+        />
       </div>
     </div>
   );
 }
-
-

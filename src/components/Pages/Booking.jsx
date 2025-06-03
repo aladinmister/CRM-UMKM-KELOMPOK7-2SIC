@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import DataTable from "react-data-table-component";
 
 const initialBookings = [
   {
@@ -6,7 +7,7 @@ const initialBookings = [
     name: "Ahmad",
     service: "Servis Mesin",
     date: "2025-06-03",
-    status: "menunggu", // atau "disetujui", "ditolak"
+    status: "menunggu",
     rejectionReason: "",
   },
   {
@@ -21,6 +22,7 @@ const initialBookings = [
 
 export default function Booking() {
   const [bookings, setBookings] = useState(initialBookings);
+  const [filterText, setFilterText] = useState("");
   const [showModal, setShowModal] = useState(false);
   const [selectedBookingId, setSelectedBookingId] = useState(null);
   const [rejectionReason, setRejectionReason] = useState("");
@@ -50,99 +52,126 @@ export default function Booking() {
     setShowModal(false);
   };
 
-  return (
-    <div className="p-6 max-w-5xl mx-auto">
-      <h1 className="text-2xl font-semibold mb-4">Laporan Booking</h1>
+  // Filter data berdasarkan filterText di kolom name, service, date, status
+  const filteredBookings = bookings.filter((b) =>
+    [b.name, b.service, b.date, b.status]
+      .join(" ")
+      .toLowerCase()
+      .includes(filterText.toLowerCase())
+  );
 
-      <div className="overflow-x-auto bg-white shadow rounded">
-        <table className="min-w-full divide-y divide-gray-200">
-          <thead className="bg-gray-50">
-            <tr>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                Nama
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                Layanan
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                Tanggal
-              </th>
-              <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase">
-                Status
-              </th>
-              <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase">
-                Aksi
-              </th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-gray-100">
-            {bookings.map((b) => (
-              <tr key={b.id} className="hover:bg-gray-50">
-                <td className="px-6 py-4">{b.name}</td>
-                <td className="px-6 py-4">{b.service}</td>
-                <td className="px-6 py-4">{b.date}</td>
-                <td className="px-6 py-4 text-center">
-                  {b.status === "disetujui" && (
-                    <span className="inline-block px-2 py-1 text-xs text-green-800 bg-green-100 rounded">
-                      Disetujui
-                    </span>
-                  )}
-                  {b.status === "ditolak" && (
-                    <span className="inline-block px-2 py-1 text-xs text-red-800 bg-red-100 rounded">
-                      Ditolak
-                    </span>
-                  )}
-                  {b.status === "menunggu" && (
-                    <span className="inline-block px-2 py-1 text-xs text-yellow-800 bg-yellow-100 rounded">
-                      Menunggu
-                    </span>
-                  )}
-                </td>
-                <td className="px-6 py-4 text-center space-x-2">
-                  {b.status === "menunggu" ? (
-                    <>
-                      <button
-                        className="text-green-600 hover:underline"
-                        onClick={() => handleApprove(b.id)}
-                      >
-                        Setujui
-                      </button>
-                      <button
-                        className="text-red-600 hover:underline"
-                        onClick={() => handleReject(b.id)}
-                      >
-                        Tolak
-                      </button>
-                    </>
-                  ) : (
-                    b.status === "ditolak" && (
-                      <div className="text-sm text-red-600">
-                        Alasan: {b.rejectionReason}
-                      </div>
-                    )
-                  )}
-                </td>
-              </tr>
-            ))}
-            {bookings.length === 0 && (
-              <tr>
-                <td colSpan="5" className="text-center py-4 text-gray-500">
-                  Tidak ada data booking.
-                </td>
-              </tr>
-            )}
-          </tbody>
-        </table>
+  const columns = [
+    {
+      name: "Nama",
+      selector: (row) => row.name,
+      sortable: true,
+    },
+    {
+      name: "Layanan",
+      selector: (row) => row.service,
+      sortable: true,
+    },
+    {
+      name: "Tanggal",
+      selector: (row) => row.date,
+      sortable: true,
+      sortFunction: (a, b) => new Date(a.date) - new Date(b.date),
+    },
+    {
+      name: "Status",
+      selector: (row) => row.status,
+      sortable: true,
+      cell: (row) => {
+        if (row.status === "disetujui") {
+          return (
+            <span className="inline-flex px-2 text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
+              Disetujui
+            </span>
+          );
+        } else if (row.status === "ditolak") {
+          return (
+            <span className="inline-flex px-2 text-xs leading-5 font-semibold rounded-full bg-red-100 text-red-800">
+              Ditolak
+            </span>
+          );
+        } else {
+          return (
+            <span className="inline-flex px-2 text-xs leading-5 font-semibold rounded-full bg-yellow-100 text-yellow-800">
+              Menunggu
+            </span>
+          );
+        }
+      },
+      center: true,
+    },
+    {
+      name: "Aksi",
+      cell: (row) =>
+        row.status === "menunggu" ? (
+          <div className="space-x-2">
+            <button
+              className="text-green-600 hover:text-green-900 font-semibold"
+              onClick={() => handleApprove(row.id)}
+            >
+              Setujui
+            </button>
+            <button
+              className="text-red-600 hover:text-red-900 font-semibold"
+              onClick={() => handleReject(row.id)}
+            >
+              Tolak
+            </button>
+          </div>
+        ) : row.status === "ditolak" ? (
+          <div className="text-sm text-red-600">Alasan: {row.rejectionReason}</div>
+        ) : (
+          "-"
+        ),
+      ignoreRowClick: true,
+      allowOverflow: true,
+      button: true,
+      center: true,
+    },
+  ];
+
+  return (
+    <div className="max-w-6xl mx-auto p-6">
+      <div className="bg-white rounded shadow p-6">
+        <h1 className="text-2xl font-semibold mb-6">Management Booking</h1>
+
+        <div className="mb-4 px-4">
+          <input
+            type="text"
+            placeholder="Cari nama, layanan, tanggal, status..."
+            value={filterText}
+            onChange={(e) => setFilterText(e.target.value)}
+            className="w-full md:w-1/3 px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-400"
+          />
+        </div>
+
+        <DataTable
+          columns={columns}
+          data={filteredBookings}
+          pagination
+          highlightOnHover
+          noHeader
+          striped
+          responsive
+          persistTableHead
+          noDataComponent={
+            <div className="p-4 text-center text-gray-500">Tidak ada data booking</div>
+          }
+        />
       </div>
 
-      {/* Modal untuk alasan penolakan */}
+      {/* Modal alasan penolakan */}
       {showModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white p-6 rounded shadow-lg w-full max-w-md">
             <h2 className="text-lg font-semibold mb-4">Alasan Penolakan</h2>
             <textarea
               className="w-full p-2 border rounded mb-4"
-              rows="4"
+              rows={4}
               value={rejectionReason}
               onChange={(e) => setRejectionReason(e.target.value)}
               placeholder="Masukkan alasan penolakan..."
