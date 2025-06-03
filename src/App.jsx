@@ -8,7 +8,8 @@ import './App.css'
 import SalesManagement from './components/Pages/SalesManagement'
 import ProdukManagement from './components/Pages/ProdukManagement'
 import CustomerManagement from './components/Pages/CustomerManagement'
-import Laporan from './components/Pages/Laporan'
+import Laporan from './components/Pages/Booking'
+import UploadProduk from './components/Pages/UploadProduk'
 
 function App() {
   const [count, setCount] = useState(0)
@@ -21,8 +22,7 @@ function App() {
     <Route path= "/produk" element = {<ProdukManagement/>} />
     <Route path= "/pelanggan" element = {<CustomerManagement/>} />
     <Route path= "/laporan" element = {<Laporan/>} />
-
-    
+    <Route path= "/produk-tambah" element = {<UploadProduk/>} />
     </Route>
    </Routes>
   )
