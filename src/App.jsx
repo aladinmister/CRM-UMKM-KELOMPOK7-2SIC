@@ -4,8 +4,8 @@ import MainLayout from './components/MainLayout';
 
 // Admin
 const Dashboard = lazy(() => import('./components/DashboardAdmin'));
-const Login = lazy(() => import('./components/Login'));
-const Register = lazy(() => import('./components/Register'));
+const Login = lazy(() => import('./components/Pages/User/Login'));
+const Register = lazy(() => import('./components/Pages/User/Register'));
 const DashboardAdmin = lazy(() => import('./components/DashboardAdmin'));
 const SalesManagement = lazy(() => import('./components/Pages/Admin/SalesManagement'));
 const ProdukManagement = lazy(() => import('./components/Pages/Admin/ProdukManagement'));
