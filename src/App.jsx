@@ -22,6 +22,7 @@ const ProductCard = lazy(() => import('./components/Pages/User/ProductCard'));
 const FormBookingService = lazy(() => import('./components/Pages/User/FormBookingService'));
 const HalamanToko = lazy(() => import('./components/Pages/User/HalamanToko'));
 const Keranjang = lazy(() => import('./components/Pages/User/Keranjang'));
+const Contact = lazy(() => import('./components/Pages/User/Contact'));
 
 // 🔄 Loading Component with AHM rotating
 function LoadingAHM() {
@@ -69,6 +70,7 @@ function App() {
           <Route path="/dashboardUser" element={<DashboardUser />} />
           <Route path="/productcard" element={<ProductCard />} />
           <Route path="/booking" element={<FormBookingService />} />
+           <Route path="/contact" element={<Contact />} />
           <Route path="/toko" element={<HalamanToko addToCart={addToCart} cart={cart} />} />
           <Route path="/keranjang" element={<Keranjang cart={cart} />} />
         </Route>
