@@ -34,7 +34,7 @@ const HeaderUser = ({ totalItem }) => {
             isMenuOpen ? 'block' : 'hidden'
           }`}
         >
-          <li><a href="/dashboardUser" className="hover:text-red-500">Home</a></li>
+          <li><a href="/" className="hover:text-red-500">Home</a></li>
           <li><a href="/booking" className="hover:text-red-500">Booking</a></li>
           <li><a href="/toko" className="hover:text-red-500">Toko</a></li>
           <li><a href="/contact" className="hover:text-red-500">Kontak</a></li>

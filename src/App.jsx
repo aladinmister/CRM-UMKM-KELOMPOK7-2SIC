@@ -67,7 +67,7 @@ function App() {
         <Route path="/register" element={<Register />} />
 
         <Route element={<MainLayoutUser />}>
-          <Route path="/dashboardUser" element={<DashboardUser />} />
+          <Route path="/" element={<DashboardUser />} />
           <Route path="/productcard" element={<ProductCard />} />
           <Route path="/booking" element={<FormBookingService />} />
            <Route path="/contact" element={<Contact />} />
@@ -76,7 +76,7 @@ function App() {
         </Route>
 
         <Route element={<MainLayout />}>
-          <Route path="/" element={<Dashboard />} />
+          <Route path="/dashboardAdmin" element={<Dashboard />} />
           <Route path="/penjualan" element={<SalesManagement />} />
 
           <Route path="/dashboardAdmin" element={<DashboardAdmin />} />

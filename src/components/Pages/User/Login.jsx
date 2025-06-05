@@ -14,7 +14,7 @@ const Login = () => {
     if (email === 'admin@example.com') {
       navigate('/dashboardAdmin');
     } else if (email === 'user@example.com') {
-      navigate('/dashboardUser');
+      navigate('/');
     } else {
       alert('Email tidak dikenali. Gunakan admin@example.com atau user@example.com');
     }
