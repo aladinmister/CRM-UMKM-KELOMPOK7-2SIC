@@ -1,17 +1,18 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import axios from "axios";
 
-export default function EdukasiAndBooking() {
+export default function FormBookingService() {
   const [formData, setFormData] = useState({
-    nama: "",
-    email: "",
-    hp: "",
-    jenisServis: "",
-    tanggalBooking: "",
-    lokasiPenjemputan: "",
+    nama_customer: "",
+    nomor_hp: "",
+    jenis_servis: "",
+    nama_karyawan: "Belum Ditentukan",
+    tanggal_booking: "",
   });
 
   const [errors, setErrors] = useState({});
   const [submitted, setSubmitted] = useState(false);
+  const [submitError, setSubmitError] = useState("");
 
   const jenisServisOptions = [
     "Servis Ringan",
@@ -23,14 +24,11 @@ export default function EdukasiAndBooking() {
 
   const validate = () => {
     const errs = {};
-    if (!formData.nama.trim()) errs.nama = "Nama wajib diisi";
-    if (!formData.email.trim()) errs.email = "Email wajib diisi";
-    else if (!/\S+@\S+\.\S+/.test(formData.email)) errs.email = "Email tidak valid";
-    if (!formData.hp.trim()) errs.hp = "Nomor HP wajib diisi";
-    else if (!/^\d{8,15}$/.test(formData.hp)) errs.hp = "Nomor HP tidak valid (8-15 digit)";
-    if (!formData.jenisServis) errs.jenisServis = "Pilih jenis servis";
-    if (!formData.tanggalBooking) errs.tanggalBooking = "Pilih tanggal booking";
-    if (!formData.lokasiPenjemputan) errs.lokasiPenjemputan = "Pilih lokasi penjemputan";
+    if (!formData.nama_customer.trim()) errs.nama_customer = "Nama wajib diisi";
+    if (!formData.nomor_hp.trim()) errs.nomor_hp = "Nomor HP wajib diisi";
+    else if (!/^\d{8,15}$/.test(formData.nomor_hp)) errs.nomor_hp = "Nomor HP tidak valid (8-15 digit)";
+    if (!formData.jenis_servis) errs.jenis_servis = "Pilih jenis servis";
+    if (!formData.tanggal_booking) errs.tanggal_booking = "Pilih tanggal booking";
     return errs;
   };
 
@@ -40,184 +38,148 @@ export default function EdukasiAndBooking() {
     setErrors((prev) => ({ ...prev, [name]: undefined }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     const validationErrors = validate();
     if (Object.keys(validationErrors).length > 0) {
       setErrors(validationErrors);
       return;
     }
-    setSubmitted(true);
+
+    try {
+      await axios.post("https://ahm.inspirasienergiprimanusa.com/api/bookings", formData);
+      setSubmitted(true);
+      setSubmitError("");
+      setFormData({
+        nama_customer: "",
+        nomor_hp: "",
+        jenis_servis: "",
+        nama_karyawan: "Belum Ditentukan",
+        tanggal_booking: "",
+      });
+    } catch (error) {
+      console.error("Gagal kirim data:", error);
+      setSubmitError("Terjadi kesalahan saat menyimpan data.");
+    }
   };
 
-  return (
-    <div className="min-h-screen flex bg-gray-50">
-      {/* LEFT: Edukasi Servis (60%) */}
-      <div className="w-3/5 p-16 bg-white flex flex-col overflow-y-auto space-y-8 shadow-inner">
-        <h1 className="text-4xl font-bold text-green-700 mb-6">Edukasi Servis Motor</h1>
-        <article className="prose prose-green max-w-none">
-          <h2>Kenapa Servis Rutin Penting?</h2>
-          <p>
-            Servis rutin pada motor sangat penting untuk menjaga performa kendaraan Anda.
-            Dengan melakukan servis secara berkala, berbagai komponen vital motor dapat
-            dicek dan diperbaiki sebelum mengalami kerusakan parah yang dapat mengganggu
-            kenyamanan berkendara.
-          </p>
-          <h2>Jenis-jenis Servis Motor</h2>
-          <ul>
-            <li><b>Servis Ringan:</b> Ganti oli, pengecekan rem, penggantian busi, dan pembersihan filter udara.</li>
-            <li><b>Servis Berat:</b> Pemeriksaan dan perbaikan bagian mesin, sistem kelistrikan, dan transmisi.</li>
-            <li><b>Ganti Oli:</b> Penggantian oli mesin untuk menjaga pelumasan optimal.</li>
-            <li><b>Tune Up:</b> Penyetelan ulang komponen untuk meningkatkan efisiensi mesin.</li>
-            <li><b>Perbaikan Elektrik:</b> Perbaikan sistem kelistrikan seperti aki, lampu, dan starter motor.</li>
-          </ul>
-          <h2>Tanda Motor Butuh Servis</h2>
-          <p>
-            Beberapa tanda motor perlu diservis antara lain suara mesin tidak normal, 
-            rem kurang responsif, konsumsi bahan bakar meningkat, atau lampu indikator menyala.
-          </p>
-          <h2>Manfaat Servis Motor Berkala</h2>
-          <p>
-            Selain menjaga keamanan dan kenyamanan, servis berkala juga memperpanjang usia 
-            motor dan menghemat biaya perbaikan di masa depan.
-          </p>
-          <h2>Tips Merawat Motor</h2>
-          <ol>
-            <li>Lakukan pengecekan rutin oli dan rem.</li>
-            <li>Bersihkan motor secara teratur.</li>
-            <li>Gunakan suku cadang asli.</li>
-            <li>Jangan menunda servis meski terlihat baik-baik saja.</li>
-          </ol>
-        </article>
-      </div>
+  // Simple auto slide for images
+  const images = [
+    "https://moladin.com/blog/wp-content/uploads/2019/08/1-6.jpg",
+    "https://www.asuransiastra.com/wp-content/uploads/2022/04/Hal-yang-Harus-Diperhatikan-Saat-Melakukan-Service-Motor.jpg",
+    "https://imgx.gridoto.com/crop/0x0:0x0/700x465/filters:watermark(file/2017/gridoto/img/watermark.png,5,5,60)/photo/2023/07/05/whatsapp-image-2023-07-05-at-12-20230705123743.jpeg"
+  ];
+  const [currentImage, setCurrentImage] = useState(0);
 
-      {/* RIGHT: Booking Form Card (40%) langsung beradu dengan kiri */}
-      <div className="w-2/5 bg-white p-12 shadow-lg flex items-center justify-center">
-        <div className="w-full max-w-md">
-          <h2 className="text-3xl font-bold mb-8 text-center text-gray-900">
-            Booking Servis Motor
-          </h2>
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentImage((prev) => (prev + 1) % images.length);
+    }, 3000); // ganti gambar tiap 3 detik
+    return () => clearInterval(interval);
+  }, []);
+
+  return (
+    <div className="min-h-screen bg-gray-100 flex items-center justify-center p-6">
+      <div className="bg-white w-full max-w-7xl shadow-xl rounded-lg overflow-hidden grid grid-cols-1 md:grid-cols-2">
+        {/* LEFT: Image Slider + Edukasi */}
+        <div className="bg-green-600 text-white p-0 flex flex-col justify-between">
+          {/* Gambar Slider */}
+          <div className="w-full h-64 md:h-80 overflow-hidden relative">
+            <img
+              src={images[currentImage]}
+              alt={`Gambar ${currentImage + 1}`}
+              className="object-cover w-full h-full transition-all duration-700"
+            />
+          </div>
+
+          {/* Edukasi */}
+          <div className="p-6 md:p-8">
+            <h2 className="text-2xl font-bold mb-4">Kenapa Servis Rutin Itu Penting?</h2>
+            <ul className="space-y-2 text-base list-disc ml-5">
+              <li>Menjaga performa motor tetap optimal.</li>
+              <li>Mencegah kerusakan lebih besar di kemudian hari.</li>
+              <li>Meningkatkan efisiensi bahan bakar.</li>
+              <li>Menjaga keamanan berkendara.</li>
+            </ul>
+          </div>
+        </div>
+
+        {/* RIGHT: Form Booking */}
+        <div className="p-8">
+          <h2 className="text-2xl font-bold text-green-700 mb-6 text-center">Form Booking Servis</h2>
 
           {submitted && (
-            <div className="bg-green-100 border border-green-400 text-green-700 px-5 py-3 rounded mb-6 text-center text-lg">
-              Terima kasih, booking service Anda telah diterima.
+            <div className="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mb-4 text-center">
+              Booking berhasil dikirim!
+            </div>
+          )}
+          {submitError && (
+            <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4 text-center">
+              {submitError}
             </div>
           )}
 
-          <form onSubmit={handleSubmit} noValidate>
-            {[
-              { id: "nama", label: "Nama Lengkap", type: "text", placeholder: "Masukkan nama lengkap" },
-              { id: "email", label: "Email", type: "email", placeholder: "contoh@mail.com" },
-              { id: "hp", label: "Nomor HP", type: "tel", placeholder: "081234567890" },
-            ].map(({ id, label, type, placeholder }) => (
-              <div key={id} className="mb-6">
-                <label htmlFor={id} className="block text-gray-700 text-lg font-medium mb-2">
-                  {label} <span className="text-red-600">*</span>
-                </label>
-                <input
-                  type={type}
-                  id={id}
-                  name={id}
-                  value={formData[id]}
-                  onChange={handleChange}
-                  placeholder={placeholder}
-                  className={`w-full px-5 py-3 border rounded-lg text-base focus:outline-none focus:ring-2 ${
-                    errors[id]
-                      ? "border-red-500 focus:ring-red-400"
-                      : "border-gray-300 focus:ring-green-500"
-                  }`}
-                />
-                {errors[id] && (
-                  <p className="text-red-600 mt-1 text-sm">{errors[id]}</p>
-                )}
-              </div>
-            ))}
-
-            <div className="mb-6">
-              <label
-                htmlFor="jenisServis"
-                className="block text-gray-700 text-lg font-medium mb-2"
-              >
-                Jenis Servis <span className="text-red-600">*</span>
-              </label>
-              <select
-                id="jenisServis"
-                name="jenisServis"
-                value={formData.jenisServis}
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div>
+              <label className="block mb-1 font-medium">Nama Customer</label>
+              <input
+                type="text"
+                name="nama_customer"
+                value={formData.nama_customer}
                 onChange={handleChange}
-                className={`w-full px-5 py-3 border rounded-lg bg-white text-base focus:outline-none focus:ring-2 ${
-                  errors.jenisServis
-                    ? "border-red-500 focus:ring-red-400"
-                    : "border-gray-300 focus:ring-green-500"
-                }`}
+                className={`w-full border px-4 py-2 rounded ${errors.nama_customer ? "border-red-500" : "border-gray-300"}`}
+                placeholder="Masukkan nama"
+              />
+              {errors.nama_customer && <p className="text-red-500 text-sm mt-1">{errors.nama_customer}</p>}
+            </div>
+
+            <div>
+              <label className="block mb-1 font-medium">Nomor HP</label>
+              <input
+                type="text"
+                name="nomor_hp"
+                value={formData.nomor_hp}
+                onChange={handleChange}
+                className={`w-full border px-4 py-2 rounded ${errors.nomor_hp ? "border-red-500" : "border-gray-300"}`}
+                placeholder="Contoh: 081234567890"
+              />
+              {errors.nomor_hp && <p className="text-red-500 text-sm mt-1">{errors.nomor_hp}</p>}
+            </div>
+
+            <div>
+              <label className="block mb-1 font-medium">Jenis Servis</label>
+              <select
+                name="jenis_servis"
+                value={formData.jenis_servis}
+                onChange={handleChange}
+                className={`w-full border px-4 py-2 rounded ${errors.jenis_servis ? "border-red-500" : "border-gray-300"}`}
               >
                 <option value="">-- Pilih jenis servis --</option>
-                {jenisServisOptions.map((option, i) => (
-                  <option key={i} value={option}>
-                    {option}
+                {jenisServisOptions.map((jenis) => (
+                  <option key={jenis} value={jenis}>
+                    {jenis}
                   </option>
                 ))}
               </select>
-              {errors.jenisServis && (
-                <p className="text-red-600 mt-1 text-sm">{errors.jenisServis}</p>
-              )}
+              {errors.jenis_servis && <p className="text-red-500 text-sm mt-1">{errors.jenis_servis}</p>}
             </div>
 
-            <div className="mb-6">
-              <label
-                htmlFor="tanggalBooking"
-                className="block text-gray-700 text-lg font-medium mb-2"
-              >
-                Tanggal Booking <span className="text-red-600">*</span>
-              </label>
+            <div>
+              <label className="block mb-1 font-medium">Tanggal Booking</label>
               <input
                 type="date"
-                id="tanggalBooking"
-                name="tanggalBooking"
-                value={formData.tanggalBooking}
+                name="tanggal_booking"
+                value={formData.tanggal_booking}
                 onChange={handleChange}
                 min={new Date().toISOString().split("T")[0]}
-                className={`w-full px-5 py-3 border rounded-lg text-base focus:outline-none focus:ring-2 ${
-                  errors.tanggalBooking
-                    ? "border-red-500 focus:ring-red-400"
-                    : "border-gray-300 focus:ring-green-500"
-                }`}
+                className={`w-full border px-4 py-2 rounded ${errors.tanggal_booking ? "border-red-500" : "border-gray-300"}`}
               />
-              {errors.tanggalBooking && (
-                <p className="text-red-600 mt-1 text-sm">{errors.tanggalBooking}</p>
-              )}
-            </div>
-
-            <div className="mb-8">
-              <p className="text-gray-700 text-lg font-medium mb-3">
-                Lokasi Penjemputan <span className="text-red-600">*</span>
-              </p>
-              <div className="flex space-x-10 text-base">
-                {["Bengkel", "Rumah"].map((lokasi) => (
-                  <label
-                    key={lokasi}
-                    className="inline-flex items-center cursor-pointer"
-                  >
-                    <input
-                      type="radio"
-                      name="lokasiPenjemputan"
-                      value={lokasi}
-                      checked={formData.lokasiPenjemputan === lokasi}
-                      onChange={handleChange}
-                      className="form-radio text-green-600"
-                    />
-                    <span className="ml-3">{lokasi}</span>
-                  </label>
-                ))}
-              </div>
-              {errors.lokasiPenjemputan && (
-                <p className="text-red-600 mt-1 text-sm">{errors.lokasiPenjemputan}</p>
-              )}
+              {errors.tanggal_booking && <p className="text-red-500 text-sm mt-1">{errors.tanggal_booking}</p>}
             </div>
 
             <button
               type="submit"
-              className="w-full bg-green-700 hover:bg-green-800 text-white font-bold py-3 rounded-lg transition-colors duration-300"
+              className="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-2 rounded"
             >
               Booking Sekarang
             </button>

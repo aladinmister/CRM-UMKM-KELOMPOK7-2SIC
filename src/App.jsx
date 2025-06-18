@@ -14,6 +14,8 @@ const CustomerManagement = lazy(() => import('./components/Pages/Admin/CustomerM
 const Laporan = lazy(() => import('./components/Pages/Admin/Booking'));
 const DataKaryawan = lazy(() => import('./components/Pages/Admin/DataKaryawan'));
 const InputKaryawan = lazy(() => import('./components/Pages/Admin/InputKaryawan'));
+const ServisChart = lazy(() => import('./components/Pages/Admin/ServisChart'));
+
 
 // User
 const MainLayoutUser = lazy(() => import('./components/Pages/User/MainLayoutUser'));
@@ -100,6 +102,7 @@ function App() {
 
         <Route element={<MainLayout />}>
           <Route path="/dashboardAdmin" element={<Dashboard />} />
+            <Route path="/Servischart" element={<ServisChart />} />
           <Route path="/penjualan" element={<SalesManagement />} />
           <Route path="/dashboardAdmin" element={<DashboardAdmin />} />
           <Route path="/produk">
