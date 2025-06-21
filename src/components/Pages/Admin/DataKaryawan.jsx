@@ -10,14 +10,17 @@ export default function KaryawanPage() {
     foto_karyawan: null,
   });
 
+  const [previewFoto, setPreviewFoto] = useState(null);
   const [showModal, setShowModal] = useState(false);
   const [viewModal, setViewModal] = useState(null);
   const [editId, setEditId] = useState(null);
   const [loading, setLoading] = useState(false);
 
+  const BASE_URL = "https://ahm.inspirasienergiprimanusa.com";
+
   const fetchData = async () => {
     try {
-      const res = await axios.get("http://localhost:8000/api/karyawan");
+      const res = await axios.get(`${BASE_URL}/api/karyawan`);
       setData(res.data);
     } catch (err) {
       console.error("Gagal ambil data", err);
@@ -30,10 +33,18 @@ export default function KaryawanPage() {
 
   const handleChange = (e) => {
     const { name, value, files } = e.target;
-    setForm((prev) => ({
-      ...prev,
-      [name]: files ? files[0] : value,
-    }));
+    if (files) {
+      setForm((prev) => ({
+        ...prev,
+        [name]: files[0],
+      }));
+      setPreviewFoto(URL.createObjectURL(files[0]));
+    } else {
+      setForm((prev) => ({
+        ...prev,
+        [name]: value,
+      }));
+    }
   };
 
   const handleSubmit = async (e) => {
@@ -42,23 +53,22 @@ export default function KaryawanPage() {
 
     const formData = new FormData();
     Object.entries(form).forEach(([key, val]) => {
-      formData.append(key, val);
+      if (val !== null) formData.append(key, val);
     });
 
     try {
       if (editId) {
-        await axios.post(`http://localhost:8000/api/karyawan/update/${editId}`, formData, {
+        await axios.post(`${BASE_URL}/api/karyawan/${editId}?_method=PUT`, formData, {
           headers: { "Content-Type": "multipart/form-data" },
         });
       } else {
-        await axios.post("http://localhost:8000/api/karyawan/store", formData, {
+        await axios.post(`${BASE_URL}/api/karyawan/store`, formData, {
           headers: { "Content-Type": "multipart/form-data" },
         });
       }
+
       fetchData();
-      setForm({ nama_karyawan: "", alamat_karyawan: "", bidang_keahlian: "", foto_karyawan: null });
-      setShowModal(false);
-      setEditId(null);
+      resetForm();
     } catch (err) {
       console.error("Gagal simpan data", err);
     } finally {
@@ -66,10 +76,22 @@ export default function KaryawanPage() {
     }
   };
 
+  const resetForm = () => {
+    setForm({
+      nama_karyawan: "",
+      alamat_karyawan: "",
+      bidang_keahlian: "",
+      foto_karyawan: null,
+    });
+    setPreviewFoto(null);
+    setShowModal(false);
+    setEditId(null);
+  };
+
   const handleDelete = async (id) => {
     if (!window.confirm("Yakin hapus data ini?")) return;
     try {
-      await axios.delete(`http://localhost:8000/api/karyawan/delete/${id}`);
+      await axios.delete(`${BASE_URL}/api/karyawan/${id}`);
       fetchData();
     } catch (err) {
       console.error("Gagal hapus data", err);
@@ -82,8 +104,9 @@ export default function KaryawanPage() {
       nama_karyawan: item.nama_karyawan,
       alamat_karyawan: item.alamat_karyawan,
       bidang_keahlian: item.bidang_keahlian,
-      foto_karyawan: null, // file tidak bisa ditampilkan langsung
+      foto_karyawan: null, // akan ditimpa kalau upload baru
     });
+    setPreviewFoto(`${BASE_URL}/storage/foto_karyawan/${item.foto_karyawan}`);
     setShowModal(true);
   };
 
@@ -94,9 +117,8 @@ export default function KaryawanPage() {
         <button
           className="bg-blue-600 text-white px-4 py-2 rounded"
           onClick={() => {
+            resetForm();
             setShowModal(true);
-            setEditId(null);
-            setForm({ nama_karyawan: "", alamat_karyawan: "", bidang_keahlian: "", foto_karyawan: null });
           }}
         >
           Tambah Data
@@ -119,17 +141,15 @@ export default function KaryawanPage() {
               <td className="border px-3 py-2">{item.nama_karyawan}</td>
               <td className="border px-3 py-2">{item.alamat_karyawan}</td>
               <td className="border px-3 py-2">{item.bidang_keahlian}</td>
-          <td className="border px-3 py-2">
-  {item.foto_karyawan && (
- <img
-  src={item.foto_karyawan?.startsWith("http") ? item.foto_karyawan : `http://localhost:8000${item.foto_karyawan}`}
-  alt="Foto Karyawan"
-  className="w-16 h-16 object-cover"
-/>
-
-  )}
-</td>
-
+              <td className="border px-3 py-2">
+                    {item.foto_karyawan && (
+                <img
+                  src={item.foto_karyawan}
+                  alt={item.foto_karyawan}
+                  className="w-24 h-24 object-cover rounded"
+                />
+              )}
+              </td>
               <td className="border px-3 py-2 flex gap-2">
                 <button
                   className="bg-green-600 text-white px-2 py-1 rounded"
@@ -137,10 +157,16 @@ export default function KaryawanPage() {
                 >
                   Show
                 </button>
-                <button className="bg-yellow-500 text-white px-2 py-1 rounded" onClick={() => openEdit(item)}>
+                <button
+                  className="bg-yellow-500 text-white px-2 py-1 rounded"
+                  onClick={() => openEdit(item)}
+                >
                   Edit
                 </button>
-                <button className="bg-red-600 text-white px-2 py-1 rounded" onClick={() => handleDelete(item.id)}>
+                <button
+                  className="bg-red-600 text-white px-2 py-1 rounded"
+                  onClick={() => handleDelete(item.id)}
+                >
                   Hapus
                 </button>
               </td>
@@ -193,9 +219,17 @@ export default function KaryawanPage() {
               type="file"
               name="foto_karyawan"
               onChange={handleChange}
-              className="w-full mb-4"
+              className="w-full mb-2"
               accept="image/*"
             />
+
+            {previewFoto && (
+              <img
+                src={previewFoto}
+                alt="Preview"
+                className="w-24 h-24 object-cover mb-4 border rounded"
+              />
+            )}
 
             <div className="flex justify-end gap-2">
               <button
@@ -226,7 +260,11 @@ export default function KaryawanPage() {
             <p><strong>Alamat:</strong> {viewModal.alamat_karyawan}</p>
             <p><strong>Bidang:</strong> {viewModal.bidang_keahlian}</p>
             {viewModal.foto_karyawan && (
-              <img src={`http://localhost:8000${viewModal.foto_karyawan}`} alt="" className="w-32 mt-4" />
+              <img
+                src={`${BASE_URL}/storage/foto_karyawan/${viewModal.foto_karyawan}`}
+                alt="Foto"
+                className="w-32 mt-4 object-cover rounded"
+              />
             )}
             <button
               onClick={() => setViewModal(null)}

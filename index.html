@@ -5,6 +5,58 @@
     <link rel="icon" type="image/svg+xml" href="/vite.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
        <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+       <!-- public/index.html -->
+<script src="https://app.midtrans.com/snap/snap.js" data-client-key="Mid-client-cAswCGNRftIqmKA_"></script>
+<style>@keyframes fadeInDown {
+  0% {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+.animate-fade-in-down { /* Anda bisa menghapus ini jika tidak pakai Tailwind */
+  animation: fadeInDown 0.3s ease-out forwards;
+}
+
+/* Basic focus styles for inputs (optional, but good practice) */
+input:focus, textarea:focus {
+  outline: none;
+  border-color: #3b82f6; /* A common blue for focus */
+  box-shadow: 0 0 0 1px #3b82f6; /* Optional subtle shadow */
+}
+
+/* Basic checkbox styles (optional, more complex for full custom styling) */
+input[type="checkbox"] {
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  border: 1px solid #d1d5db;
+  border-radius: 4px;
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
+  display: inline-block;
+  vertical-align: middle;
+  position: relative;
+}
+
+input[type="checkbox"]:checked {
+  background-color: #2563eb; /* blue-600 */
+  border-color: #2563eb;
+}
+
+input[type="checkbox"]:checked::before {
+  content: '✓'; /* Unicode checkmark */
+  display: block;
+  color: white;
+  font-size: 10px;
+  text-align: center;
+  line-height: 16px;
+}</style>
+
     <title>Vite + React</title>
   </head>
   <body>
