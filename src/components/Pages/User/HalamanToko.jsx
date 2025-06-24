@@ -16,7 +16,7 @@ const kategoriList = [
 
 // --- Konfigurasi RajaOngkir ---
 const RAJAONGKIR_API_KEY = 'b0486067f4cf5ca8ab46b6edad7465bb'; // Pastikan ini API key Anda yang valid
-const RAJAONGKIR_BASE_PROXY_PATH = '/rajaongkir-api'; 
+const RAJAONGKIR_BASE_PROXY_PATH = 'https://ahm.inspirasienergiprimanusa.com/api/rajaongkir';
 const RAJAONGKIR_PACKAGE_TYPE = 'starter'; // TETAP STARTER, SESUAI KONFIRMASI ANDA
 
 const RAJAONGKIR_ORIGIN_CITY = '350'; // ID kota Pekanbaru (asal pengiriman)
