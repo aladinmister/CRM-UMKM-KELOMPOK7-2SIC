@@ -5,6 +5,7 @@ import {
   Heart, PlusCircle, CreditCard, MapPin, Truck, Loader
 } from 'lucide-react';
 
+// Daftar kategori produk
 const kategoriList = [
   { label: 'Oli', icon: '🛢️' },
   { label: 'Ban', icon: '🛞' },
@@ -14,16 +15,16 @@ const kategoriList = [
   { label: 'Lampu', icon: '💡' },
 ];
 
-// --- Konfigurasi RajaOngkir ---
-const RAJAONGKIR_API_KEY = 'b0486067f4cf5ca8ab46b6edad7465bb'; // Pastikan ini API key Anda yang valid
+// Konfigurasi RajaOngkir
+const RAJAONGKIR_API_KEY = 'b0486067f4cf5ca8ab46b6edad7465bb';
 const RAJAONGKIR_BASE_PROXY_PATH = 'https://ahm.inspirasienergiprimanusa.com/api/rajaongkir';
-const RAJAONGKIR_PACKAGE_TYPE = 'starter'; // TETAP STARTER, SESUAI KONFIRMASI ANDA
+const RAJAONGKIR_PACKAGE_TYPE = 'starter';
+const RAJAONGKIR_ORIGIN_CITY = '350'; // ID kota Pekanbaru
 
-const RAJAONGKIR_ORIGIN_CITY = '350'; // ID kota Pekanbaru (asal pengiriman)
+// URL API backend
+const API_BASE_URL = 'https://ahm.inspirasienergiprimanusa.com';
 
-// URL API produk Anda
-const PRODUCT_API_BASE_URL = 'https://ahm.inspirasienergiprimanusa.com'; 
-
+// Komponen untuk bubble kategori
 const CategoryBubble = ({ label, icon, active, onClick }) => (
   <button onClick={() => onClick(label)} className="flex flex-col items-center justify-center space-y-1 w-20 focus:outline-none">
     <div className={`w-16 h-16 rounded-full flex items-center justify-center text-2xl shadow ${active ? 'bg-red-600 text-white' : 'bg-white text-red-600 border border-red-600'}`}>{icon}</div>
@@ -31,6 +32,7 @@ const CategoryBubble = ({ label, icon, active, onClick }) => (
   </button>
 );
 
+// Komponen untuk menampilkan daftar kategori
 function KategoriSection({ selectedKategori, onSelect }) {
   return (
     <div className="grid grid-cols-3 sm:grid-cols-6 gap-4 mb-10">
@@ -47,6 +49,7 @@ function KategoriSection({ selectedKategori, onSelect }) {
   );
 }
 
+// Komponen Carousel untuk banner promo
 function Carousel() {
   const [current, setCurrent] = useState(0);
   const slides = [
@@ -55,6 +58,7 @@ function Carousel() {
     'https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEircB8GX_fWNC76QlWRHFKUA3GGXodBx4Y9wBB_limZ-epprpjewURZ7ueGGxN-3LqQ8xpVQwbjoPFQ1eXVMLnKmRkul9U1EmEox2XBNk63OtrK_klRpcYeH0U2l91VkQdOmMDNDAYYiqdy/s640/AHM+OIL.png',
   ];
 
+  // Otomatis ganti slide setiap 4 detik
   useEffect(() => {
     const timer = setInterval(() => {
       setCurrent((prev) => (prev + 1) % slides.length);
@@ -76,6 +80,7 @@ function Carousel() {
   );
 }
 
+// Fungsi helper untuk produk
 function isPromo(product) {
   return product.harga_promo && parseInt(product.harga_promo) < parseInt(product.harga_produk);
 }
@@ -90,6 +95,7 @@ function getHargaFinal(product) {
   return isPromo(product) ? parseInt(product.harga_promo) : parseInt(product.harga_produk);
 }
 
+// Komponen untuk menampilkan daftar produk
 function ProductSection({ title, icon: Icon, products, addToCart }) {
   return (
     <div className="mb-10">
@@ -133,6 +139,7 @@ function ProductSection({ title, icon: Icon, products, addToCart }) {
   );
 }
 
+// Komponen Keranjang Belanja
 function Keranjang({
   cart,
   updateQty,
@@ -156,30 +163,34 @@ function Keranjang({
   fetchShippingCosts,
   shippingOptions,
   setShippingOptions,
-  notification, // Menambahkan prop notifikasi
-  setNotification, // Menambahkan prop setNotification
-  isLoadingShipping // Menambahkan prop loading
+  notification,
+  setNotification,
+  isLoadingShipping
 }) {
+  // Hitung total harga produk, berat, dan pembayaran
   const totalHargaProduk = cart.reduce((acc, item) => acc + item.harga_final * item.qty, 0);
   const totalPembayaran = totalHargaProduk + (shippingCost || 0);
   const totalBerat = cart.reduce((acc, item) => acc + (item.berat_produk ? parseInt(item.berat_produk) : 1) * item.qty, 0);
 
+  // Fungsi untuk menampilkan notifikasi
   const displayNotification = (message, type = 'error') => {
     setNotification({ message, type });
-    setTimeout(() => setNotification(null), 3000); // Notifikasi hilang setelah 3 detik
+    setTimeout(() => setNotification(null), 3000);
   };
 
+  // Handler untuk perubahan provinsi
   const handleProvinceChange = (e) => {
     const provinceId = e.target.value;
     setSelectedProvince(provinceId);
     setSelectedCity(''); 
-    setDestinationAddress(prev => ({ ...prev, postalCode: '' })); // Reset kode pos
+    setDestinationAddress(prev => ({ ...prev, postalCode: '' }));
     setShippingOptions([]); 
     setShippingCost(0); 
     setShippingCourier(''); 
     fetchCities(provinceId);
   };
 
+  // Handler untuk perubahan kota
   const handleCityChange = (e) => {
     const cityId = e.target.value;
     setSelectedCity(cityId);
@@ -187,7 +198,7 @@ function Keranjang({
     setShippingCost(0); 
     setShippingCourier(''); 
     
-    // Coba set kode pos otomatis jika kota memiliki kode pos
+    // Set kode pos otomatis jika tersedia
     const selectedCityData = cities.find(city => city.city_id === cityId);
     if (selectedCityData && selectedCityData.postal_code) {
       setDestinationAddress(prev => ({ ...prev, postalCode: selectedCityData.postal_code }));
@@ -198,10 +209,12 @@ function Keranjang({
     }
   };
 
+  // Handler untuk perubahan alamat
   const handleAddressChange = (e) => {
     setDestinationAddress({ ...destinationAddress, [e.target.name]: e.target.value });
   };
 
+  // Handler untuk cek ongkos kirim
   const handleCheckOngkir = () => {
     if (!selectedCity) {
       displayNotification("Harap pilih Kota/Kabupaten tujuan pengiriman.", 'error');
@@ -216,19 +229,10 @@ function Keranjang({
       return;
     }
 
-    // Validasi sederhana kode pos (opsional, karena RajaOngkir Starter tidak validasi mendalam)
-    const selectedCityData = cities.find(city => city.city_id === selectedCity);
-    if (selectedCityData && selectedCityData.postal_code && selectedCityData.postal_code !== destinationAddress.postalCode) {
-        // Ini adalah validasi sederhana: jika ada kode pos otomatis dari RO, dan user mengganti tapi tidak cocok.
-        // Pada paket Starter, RajaOngkir tidak melakukan validasi silang kode pos dengan kota secara ketat saat request cost.
-        // Ini lebih ke UX hint.
-        displayNotification("Kode pos mungkin tidak cocok dengan kota yang dipilih. Pastikan kode pos benar.", 'warning');
-    }
-
-
     fetchShippingCosts(totalBerat, selectedCity);
   };
 
+  // Handler untuk memilih kurir pengiriman
   const handleCourierSelect = (cost, courierCode, service) => {
     setShippingCost(cost);
     const formattedCourierName = `${courierCode.toUpperCase()} - ${service}`;
@@ -357,7 +361,7 @@ function Keranjang({
                     >
                       <div>
                         <p className="font-semibold text-sm">{option.description} ({option.service})</p>
-                        <p className="text-xs text-gray-500">Estimasi: {option.etd} hari</p>
+                        <p className="text-xs text-gray-500">Estimasi: ${option.etd} hari</p>
                       </div>
                       <span className="font-bold text-red-600">Rp{option.cost[0].value.toLocaleString()}</span>
                     </div>
@@ -398,10 +402,7 @@ function Keranjang({
   );
 }
 
-function isNormal(product) {
-  return (!product.harga_promo || parseInt(product.harga_promo) >= parseInt(product.harga_produk));
-}
-
+// Komponen utama halaman toko
 export default function HalamanToko() {
   const [searchQuery, setSearchQuery] = useState('');
   const [cart, setCart] = useState([]);
@@ -409,7 +410,7 @@ export default function HalamanToko() {
   const [selectedKategori, setSelectedKategori] = useState('');
   const [allProducts, setAllProducts] = useState([]);
 
-  // --- State untuk RajaOngkir ---
+  // State untuk pengiriman
   const [provinces, setProvinces] = useState([]);
   const [cities, setCities] = useState([]);
   const [selectedProvince, setSelectedProvince] = useState('');
@@ -422,13 +423,12 @@ export default function HalamanToko() {
   const [shippingOptions, setShippingOptions] = useState([]);
   const [shippingCost, setShippingCost] = useState(0);
   const [shippingCourier, setShippingCourier] = useState('');
-  const [notification, setNotification] = useState(null); // State untuk notifikasi
-  const [isLoadingShipping, setIsLoadingShipping] = useState(false); // State untuk loading ongkir
+  const [notification, setNotification] = useState(null);
+  const [isLoadingShipping, setIsLoadingShipping] = useState(false);
 
-
+  // Fungsi untuk mengambil data produk dari API
   useEffect(() => {
-    // Fetch produk
-    axios.get(`${PRODUCT_API_BASE_URL}/api/produk`)
+    axios.get(`${API_BASE_URL}/api/produk`)
       .then(res => {
         const data = Array.isArray(res.data) ? res.data : res.data.data || [];
         setAllProducts(data);
@@ -438,7 +438,7 @@ export default function HalamanToko() {
         setNotification({ message: 'Gagal memuat produk. Coba refresh halaman.', type: 'error' });
       });
 
-    // --- Fetch provinsi RajaOngkir MELALUI PROXY ---
+    // Mengambil data provinsi dari RajaOngkir
     axios.get(`${RAJAONGKIR_BASE_PROXY_PATH}/${RAJAONGKIR_PACKAGE_TYPE}/province`, { 
       headers: { 'key': RAJAONGKIR_API_KEY }
     })
@@ -452,11 +452,11 @@ export default function HalamanToko() {
       })
       .catch(err => {
         console.error('Gagal fetch provinsi:', err.message);
-        setNotification({ message: 'Gagal mengambil data provinsi. Pastikan proxy server Vite berjalan dan konfigurasi RajaOngkir benar.', type: 'error' });
+        setNotification({ message: 'Gagal mengambil data provinsi. Pastikan proxy server berjalan dan konfigurasi RajaOngkir benar.', type: 'error' });
       });
   }, []); 
 
-  // Fungsi fetchCities menggunakan PROXY
+  // Fungsi untuk mengambil data kota berdasarkan provinsi
   const fetchCities = useCallback((provinceId) => {
     if (!provinceId) {
       setCities([]);
@@ -480,79 +480,79 @@ export default function HalamanToko() {
       });
   }, []);
 
-  // Fungsi fetchShippingCosts menggunakan PROXY
-  const fetchShippingCosts = useCallback(async (weight, destinationCityId) => {
-    setShippingOptions([]); 
-    setShippingCost(0);
-    setShippingCourier('');
-    setIsLoadingShipping(true); // Mulai loading
+  // Fungsi untuk menghitung ongkos kirim
+ const fetchShippingCosts = useCallback(async (weight, destinationCityId) => {
+  setShippingOptions([]); 
+  setShippingCost(0);
+  setShippingCourier('');
+  setIsLoadingShipping(true);
 
-    if (weight === 0 || !destinationCityId) {
-      setNotification({ message: "Berat produk dan tujuan harus diisi untuk cek ongkir.", type: 'error' });
-      setIsLoadingShipping(false);
-      return;
-    }
+  if (weight === 0 || !destinationCityId) {
+    setNotification({ message: "Berat produk dan tujuan harus diisi untuk cek ongkir.", type: 'error' });
+    setIsLoadingShipping(false);
+    return;
+  }
 
-    const couriers = ['jne', 'pos', 'tiki']; 
+  const couriers = ['jne', 'pos', 'tiki'];
 
-    try {
-      const responses = await Promise.all(couriers.map(courier =>
-        axios.post(`${RAJAONGKIR_BASE_PROXY_PATH}/${RAJAONGKIR_PACKAGE_TYPE}/cost`, { 
-          origin: RAJAONGKIR_ORIGIN_CITY,
-          originType: 'city',
-          destination: destinationCityId,
-          destinationType: 'city',
-          weight: weight,
-          courier: courier
-        }, {
-          headers: { 'key': RAJAONGKIR_API_KEY }
-        }).catch(error => {
-          console.error(`Error fetching cost for ${courier}:`, error);
-          return { data: { rajaongkir: { status: { code: 500, description: `Failed to fetch for ${courier}` } } } }; // Return structured error
-        })
-      ));
+  try {
+    const responses = await Promise.all(couriers.map(courier =>
+      axios.post(`${RAJAONGKIR_BASE_PROXY_PATH}/${RAJAONGKIR_PACKAGE_TYPE}/cost`, { 
+        origin: RAJAONGKIR_ORIGIN_CITY,
+        originType: 'city',
+        destination: destinationCityId,
+        destinationType: 'city',
+        weight: weight,
+        courier: courier
+      }, {
+        headers: { 'key': RAJAONGKIR_API_KEY }
+      }).catch(error => {
+        console.error(`Error fetching cost for ${courier}:`, error);
+        return { data: { rajaongkir: { status: { code: 500, description: `Failed to fetch for ${courier}` } } } };
+      })
+    ));
 
-      let allOptions = [];
-      let anySuccess = false;
+    let allOptions = [];
+    let anySuccess = false;
 
-      responses.forEach(res => {
-        if (res.data.rajaongkir.status.code === 200) {
-          anySuccess = true;
-          res.data.rajaongkir.results.forEach(result => {
-            if (result.costs && result.costs.length > 0) {
-              result.costs.forEach(cost => {
-                if (cost.cost && cost.cost.length > 0) {
-                  allOptions.push({
-                    courier: result.code,
-                    description: cost.description,
-                    service: cost.service,
-                    cost: cost.cost,
-                    etd: cost.cost[0].etd || 'N/A'
-                  });
-                }
-              });
-            }
-          });
-        } else {
-          console.warn(`Gagal mengambil ongkir untuk ${res.data.rajaongkir.query?.courier || 'Unknown'}:`, res.data.rajaongkir.status.description);
-        }
-      });
-
-      setShippingOptions(allOptions);
-      if (!anySuccess || allOptions.length === 0) {
-        setNotification({ message: "Tidak ada opsi pengiriman tersedia untuk tujuan ini atau berat produk tidak valid. Pastikan berat produk lebih dari 0.", type: 'warning' });
+    responses.forEach(res => {
+      if (res.data.rajaongkir.status.code === 200) {
+        anySuccess = true;
+        res.data.rajaongkir.results.forEach(result => {
+          if (result.costs && result.costs.length > 0) {
+            result.costs.forEach(cost => {
+              if (cost.cost && cost.cost.length > 0) {
+                allOptions.push({
+                  courier: result.code,
+                  description: cost.description,
+                  service: cost.service,
+                  cost: cost.cost,
+                  etd: cost.cost[0].etd || 'N/A'
+                });
+              }
+            });
+          }
+        });
       } else {
-        setNotification({ message: "Opsi pengiriman berhasil dimuat!", type: 'info' });
+        console.warn(`Gagal mengambil ongkir untuk ${res.data.rajaongkir.query?.courier || 'Unknown'}:`, res.data.rajaongkir.status.description);
       }
-    } catch (err) {
-      console.error('Gagal fetch ongkos kirim:', err.message);
-      setNotification({ message: "Gagal mengambil ongkos kirim. Pastikan proxy server Vite berjalan, API key dan konfigurasi RajaOngkir sudah benar, serta koneksi internet Anda stabil.", type: 'error' });
-    } finally {
-      setIsLoadingShipping(false); // Selesai loading
+    });
+
+    setShippingOptions(allOptions);
+    if (!anySuccess || allOptions.length === 0) {
+      setNotification({ message: "Tidak ada opsi pengiriman tersedia untuk tujuan ini atau berat produk tidak valid.", type: 'warning' });
+    } else {
+      setNotification({ message: "Opsi pengiriman berhasil dimuat!", type: 'info' });
     }
-  }, []);
+  } catch (err) {
+    console.error('Gagal fetch ongkos kirim:', err.message);
+    setNotification({ message: "Gagal mengambil ongkos kirim. Pastikan koneksi internet stabil.", type: 'error' });
+  } finally {
+    setIsLoadingShipping(false);
+  }
+}, []);
 
-
+  // Fungsi untuk menambahkan produk ke keranjang
   const addToCart = (product) => {
     const exist = cart.find((item) => item.id === product.id);
     if (exist) {
@@ -563,95 +563,187 @@ export default function HalamanToko() {
     setIsCartOpen(true);
   };
 
+  // Fungsi untuk mengupdate jumlah produk di keranjang
   const updateQty = (productId, newQty) => {
     if (newQty < 1) return;
     setCart(cart.map((item) => item.id === productId ? { ...item, qty: newQty } : item));
   };
 
+  // Fungsi untuk menghapus produk dari keranjang
   const removeFromCart = (productId) => {
     setCart(cart.filter((item) => item.id !== productId));
     setShippingCost(0);
     setShippingCourier('');
     setShippingOptions([]);
-    setNotification(null); // Hapus notifikasi saat keranjang berubah
+    setNotification(null);
   };
 
-  const handleCheckout = (totalPembayaran) => {
+  // Fungsi untuk proses checkout
+const handleCheckout = async (totalPembayaran) => {
+    // Validasi minimal pembayaran
     if (totalPembayaran < 1000) {
-      setNotification({ message: "Total pembayaran minimal Rp 1.000", type: 'error' });
-      return;
-    }
-    if (!selectedCity || !shippingCourier || !destinationAddress.detailAddress || !destinationAddress.postalCode) {
-      setNotification({ message: "Harap lengkapi detail pengiriman (provinsi, kota, alamat detail, kode pos) dan pilih jasa pengiriman.", type: 'error' });
-      return;
-    }
-
-    axios.post('https://ahm.inspirasienergiprimanusa.com/api/midtrans/token', {
-      total: totalPembayaran,
-      items: cart.map(item => ({
-        id: item.id,
-        name: item.nama_produk,
-        price: item.harga_final,
-        quantity: item.qty
-      })),
-      shipping: {
-        cost: shippingCost,
-        courier: shippingCourier,
-        address: {
-          province_id: selectedProvince,
-          city_id: selectedCity,
-          detail_address: destinationAddress.detailAddress,
-          postal_code: destinationAddress.postalCode,
-          notes: destinationAddress.notes
-        }
-      }
-    })
-      .then(res => {
-        const snapToken = res.data.token;
-
-        if (!window.snap || !window.snap.pay) {
-          setNotification({ message: "Midtrans belum siap. Silakan refresh halaman dan coba lagi.", type: 'error' });
-          return;
-        }
-
-        window.snap.pay(snapToken, {
-          onSuccess: result => {
-            setNotification({ message: "Pembayaran sukses!", type: 'info' });
-            setCart([]);
-            setIsCartOpen(false);
-            setShippingCost(0);
-            setShippingCourier('');
-            setSelectedProvince('');
-            setSelectedCity('');
-            setDestinationAddress({ detailAddress: '', postalCode: '', notes: '' });
-            setShippingOptions([]);
-          },
-          onPending: result => {
-            setNotification({ message: "Pembayaran tertunda. Menunggu pembayaran Anda.", type: 'warning' });
-          },
-          onError: result => {
-            setNotification({ message: "Pembayaran gagal! Silakan coba lagi.", type: 'error' });
-          },
-          onClose: () => {
-            setNotification({ message: "Anda menutup popup pembayaran tanpa menyelesaikan transaksi.", type: 'warning' });
-          }
-        });
-      })
-      .catch(err => {
-        console.error('Gagal membuat token Midtrans:', err);
-        const message = (err.response && err.response.data && err.response.data.message)
-          ? err.response.data.message
-          : err.message || "Terjadi kesalahan";
-        setNotification({ message: `Gagal membuat token Midtrans: ${message}`, type: 'error' });
+      setNotification({
+        message: "Total pembayaran minimal Rp 1.000",
+        type: 'error'
       });
+      return;
+    }
+
+    // Validasi kelengkapan data
+    if (!selectedCity || !shippingCourier || !destinationAddress.detailAddress || !destinationAddress.postalCode) {
+      setNotification({
+        message: "Harap lengkapi detail pengiriman dan pilih jasa pengiriman",
+        type: 'error'
+      });
+      return;
+    }
+
+    try {
+      // Pisahkan kurir dan layanan
+      const [courier, service] = shippingCourier.split(' - ');
+
+      // Format data untuk backend
+      const transactionData = {
+        items: cart.map(item => ({
+          produk_id: item.id.toString(),
+          nama_produk: item.nama_produk.substring(0, 255),
+          harga: parseFloat(item.harga_final),
+          quantity: parseInt(item.qty),
+          berat: item.berat_produk ? parseInt(item.berat_produk) : 1
+        })),
+        total_price: cart.reduce((sum, item) => sum + (item.harga_final * item.qty), 0),
+        shipping_cost: parseFloat(shippingCost),
+        total_payment: parseFloat(totalPembayaran),
+        courier: courier,
+        shipping_service: service || 'REG',
+        shipping_address: {
+          provinsi_id: selectedProvince.toString(),
+          kota_id: selectedCity.toString(),
+          detail_alamat: destinationAddress.detailAddress.substring(0, 500),
+          kode_pos: destinationAddress.postalCode.toString().substring(0, 10),
+          catatan: (destinationAddress.notes || '').substring(0, 500)
+        }
+      };
+
+      // 1. Simpan transaksi ke database
+      const transactionResponse = await axios.post(
+        `${API_BASE_URL}/api/transaksi`,
+        transactionData,
+        {
+          headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
+          },
+          timeout: 10000
+        }
+      );
+
+      const orderId = transactionResponse.data.data.order_id;
+      const cityName = cities.find(c => c.city_id === selectedCity)?.city_name || 'Kota Tidak Diketahui';
+
+      // 2. Generate token Midtrans
+      const tokenResponse = await axios.post(
+        `${API_BASE_URL}/api/midtrans/token`,
+        {
+          transaksi_id: orderId,
+          total: totalPembayaran,
+          items: cart.map(item => ({
+            id: item.id.toString(),
+            name: item.nama_produk.substring(0, 50),
+            price: item.harga_final,
+            quantity: item.qty
+          })),
+          customer_details: {
+            first_name: "Pelanggan Toko",
+            email: "pelanggan@example.com",
+            phone: "081234567890",
+            shipping_address: {
+              address: destinationAddress.detailAddress,
+              city: cityName,
+              postal_code: destinationAddress.postalCode
+            }
+          }
+        }
+      );
+
+      // 3. Buka popup pembayaran Midtrans
+      window.snap.pay(tokenResponse.data.token, {
+        onSuccess: async (result) => {
+          await axios.put(`${API_BASE_URL}/api/transaksi/${orderId}/status`, {
+            status: 'success',
+            payment_method: result.payment_type,
+            transaction_id: result.transaction_id,
+            transaction_time: result.transaction_time
+          });
+          setNotification({
+            message: `Pembayaran berhasil! ID: ${orderId}`,
+            type: 'success'
+          });
+          resetCart();
+        },
+        onPending: async (result) => {
+          await axios.put(`${API_BASE_URL}/api/transaksi/${orderId}/status`, {
+            status: 'pending',
+            payment_method: result.payment_type,
+            transaction_id: result.transaction_id,
+            transaction_time: result.transaction_time
+          });
+          setNotification({
+            message: `Menunggu konfirmasi pembayaran. ID: ${orderId}`,
+            type: 'warning'
+          });
+        },
+        onError: async (error) => {
+          await axios.put(`${API_BASE_URL}/api/transaksi/${orderId}/status`, {
+            status: 'failed'
+          });
+          setNotification({
+            message: `Pembayaran gagal. Silakan coba lagi. ID: ${orderId}`,
+            type: 'error'
+          });
+        },
+        onClose: async () => {
+          await axios.put(`${API_BASE_URL}/api/transaksi/${orderId}/status`, {
+            status: 'failed',
+            transaction_id: 'user_closed'
+          });
+          setNotification({
+            message: `Anda menutup halaman pembayaran. ID: ${orderId}`,
+            type: 'info'
+          });
+        }
+      });
+
+    } catch (error) {
+      console.error('Error proses checkout:', error);
+      setNotification({
+        message: error.response?.data?.message || 'Terjadi kesalahan saat proses checkout',
+        type: 'error',
+        duration: 5000
+      });
+    }
   };
 
+  // Fungsi untuk reset keranjang
+  const resetCart = () => {
+    setCart([]);
+    setIsCartOpen(false);
+    setShippingCost(0);
+    setShippingCourier('');
+    setSelectedProvince('');
+    setSelectedCity('');
+    setDestinationAddress({ detailAddress: '', postalCode: '', notes: '' });
+    setShippingOptions([]);
+  };
+
+  // Filter produk berdasarkan pencarian dan kategori
   const filterProducts = (product) => {
     const matchSearch = searchQuery ? product.nama_produk.toLowerCase().includes(searchQuery.toLowerCase()) : true;
     const matchKategori = selectedKategori ? product.kategori === selectedKategori : true;
     return matchSearch && matchKategori;
   };
 
+  // Kategorikan produk
   const promoProducts = allProducts.filter(isPromo).filter(filterProducts);
   const newProducts = allProducts.filter(isNew).filter(filterProducts);
   const normalProducts = allProducts.filter(p => !isPromo(p) && !isNew(p)).filter(filterProducts);
@@ -698,7 +790,6 @@ export default function HalamanToko() {
         isOpen={isCartOpen}
         onClose={() => setIsCartOpen(false)}
         handleCheckout={handleCheckout}
-        // Props untuk RajaOngkir
         shippingCost={shippingCost}
         setShippingCost={setShippingCost}
         shippingCourier={shippingCourier}
@@ -715,9 +806,9 @@ export default function HalamanToko() {
         fetchShippingCosts={fetchShippingCosts}
         shippingOptions={shippingOptions}
         setShippingOptions={setShippingOptions}
-        notification={notification} // Pass notification state
-        setNotification={setNotification} // Pass setNotification function
-        isLoadingShipping={isLoadingShipping} // Pass loading state
+        notification={notification}
+        setNotification={setNotification}
+        isLoadingShipping={isLoadingShipping}
       />
     </div>
   );
