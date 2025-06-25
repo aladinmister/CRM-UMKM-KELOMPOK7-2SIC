@@ -2,6 +2,7 @@ import React, { useState, lazy, Suspense } from 'react';
 import { Routes, Route } from 'react-router-dom';
 import MainLayout from './components/MainLayout';
 
+
 // Admin
 const Dashboard = lazy(() => import('./components/DashboardAdmin'));
 const Login = lazy(() => import('./components/Pages/User/Login'));
@@ -15,6 +16,7 @@ const Laporan = lazy(() => import('./components/Pages/Admin/Booking'));
 const DataKaryawan = lazy(() => import('./components/Pages/Admin/DataKaryawan'));
 const InputKaryawan = lazy(() => import('./components/Pages/Admin/InputKaryawan'));
 const ServisChart = lazy(() => import('./components/Pages/Admin/ServisChart'));
+const TransaksiAdmin = lazy(() => import('./components/Pages/Admin/TransaksiAdmin'));
 
 
 // User
@@ -102,6 +104,7 @@ function App() {
 
         <Route element={<MainLayout />}>
           <Route path="/dashboardAdmin" element={<Dashboard />} />
+            <Route path="/transaksiAdmin" element={<TransaksiAdmin />} />
             <Route path="/Servischart" element={<ServisChart />} />
           <Route path="/penjualan" element={<SalesManagement />} />
           <Route path="/dashboardAdmin" element={<DashboardAdmin />} />

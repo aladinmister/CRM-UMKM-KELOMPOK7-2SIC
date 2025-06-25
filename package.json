@@ -16,7 +16,9 @@
     "lucide-react": "^0.511.0",
     "react": "^19.1.0",
     "react-chartjs-2": "^5.3.0",
+    "react-confirm-alert": "^3.0.6",
     "react-data-table-component": "^7.7.0",
+    "react-data-table-component-extensions": "^1.6.0",
     "react-dom": "^19.1.0",
     "react-router-dom": "^7.6.2",
     "react-toastify": "^11.0.5",
@@ -32,8 +34,8 @@
     "eslint-plugin-react-hooks": "^5.2.0",
     "eslint-plugin-react-refresh": "^0.4.19",
     "globals": "^16.0.0",
-    "postcss": "^8.5.3",
-    "tailwindcss": "^4.1.7",
+    "postcss": "^8.5.6",
+    "tailwindcss": "^4.1.10",
     "vite": "^6.3.5"
   }
 }
