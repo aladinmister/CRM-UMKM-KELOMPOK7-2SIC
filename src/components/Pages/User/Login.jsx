@@ -126,7 +126,7 @@ const Login = () => {
           className="mt-4 w-full flex items-center justify-center gap-3 bg-white text-red-700 border border-red-300 py-2 rounded-lg hover:bg-red-50 transition"
         >
           <img
-            src="https://e7.pngegg.com/pngimages/882/225/png-clipart-google-logo-google-logo-google-search-icon-google-text-logo-thumbnail.png"
+            src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSJg75LWB1zIJt1VTZO7O68yKciaDSkk3KMdw&s"
             alt="Google"
             className="w-5 h-5"
           />

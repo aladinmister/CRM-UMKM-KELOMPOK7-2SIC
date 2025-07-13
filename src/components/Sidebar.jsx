@@ -21,9 +21,7 @@ const menuItems = [
 ];
 
 const accountItems = [
-  { name: 'Pengaturan Akun', icon: <Settings size={18} />, path: '/akun' },
-  { name: 'Sign In', icon: <LogIn size={18} />, path: '/signin' },
-  { name: 'Sign Up', icon: <UserPlus size={18} />, path: '/signup' },
+ 
 ];
 
 export const Sidebar = () => {
@@ -94,10 +92,7 @@ export const Sidebar = () => {
         })}
       </div>
 
-      {/* Label akun */}
-      <div className="px-5 mt-10 text-xs font-semibold text-red-400 uppercase tracking-wider">
-        Akun
-      </div>
+    
 
       {/* Menu akun */}
       <div className="px-4 mt-3">
