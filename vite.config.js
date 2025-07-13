@@ -1,3 +1,4 @@
+// vite.config.js
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 
@@ -5,34 +6,20 @@ export default defineConfig({
   plugins: [react()],
   server: {
     proxy: {
-      '/api': {
-        target: 'https://ahm.inspirasienergiprimanusa.com',
+      '/rajaongkir-api': { 
+        target: 'https://api.rajaongkir.com', 
         changeOrigin: true,
-        rewrite: (path) => path.replace(/^\/api/, ''),
-        secure: false,
-        configure: (proxy) => {
-          proxy.on('proxyReq', (proxyReq, req) => {
-            console.log(`Proxy request: ${req.method} ${req.url}`);
+        rewrite: (path) => path.replace(/^\/rajaongkir-api/, ''), 
+        secure: false, 
+        configure: (proxy, options) => {
+          proxy.on('proxyReq', (proxyReq, req, res) => {
+            console.log(`[Vite Proxy] Meneruskan permintaan: ${req.method} ${req.url} -> <span class="math-inline">\{proxyReq\.protocol\}//</span>{proxyReq.host}${proxyReq.path}`);
           });
-          proxy.on('proxyRes', (proxyRes, req) => {
-            console.log(`Proxy response: ${req.url} -> ${proxyRes.statusCode}`);
+          proxy.on('proxyRes', (proxyRes, req, res) => {
+            console.log(`[Vite Proxy] Menerima respons dari ${req.url} dengan status: ${proxyRes.statusCode}`);
           });
         }
       },
-      '/rajaongkir-api': {
-        target: 'https://api.rajaongkir.com',
-        changeOrigin: true,
-        rewrite: (path) => path.replace(/^\/rajaongkir-api/, ''),
-        secure: false,
-        headers: {
-          'key': 'YOUR_RAJAONGKIR_API_KEY' // Ganti dengan API key Anda
-        }
-      }
-    }
+    },
   },
-  build: {
-    outDir: 'dist',
-    emptyOutDir: true,
-    sourcemap: true
-  }
 });

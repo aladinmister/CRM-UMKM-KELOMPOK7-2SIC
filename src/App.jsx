@@ -17,6 +17,8 @@ const DataKaryawan = lazy(() => import('./components/Pages/Admin/DataKaryawan'))
 const InputKaryawan = lazy(() => import('./components/Pages/Admin/InputKaryawan'));
 const ServisChart = lazy(() => import('./components/Pages/Admin/ServisChart'));
 const TransaksiAdmin = lazy(() => import('./components/Pages/Admin/TransaksiAdmin'));
+const PembelianNew = lazy(() => import('./components/Pages/Admin/PembelianNew'));
+
 
 
 // User
@@ -27,6 +29,8 @@ const FormBookingService = lazy(() => import('./components/Pages/User/FormBookin
 const HalamanToko = lazy(() => import('./components/Pages/User/HalamanToko'));
 const Keranjang = lazy(() => import('./components/Pages/User/Keranjang'));
 const Contact = lazy(() => import('./components/Pages/User/Contact'));
+
+const Spreperat = lazy(() => import('./components/Pages/Admin/Spreperat'));
 
 // 🔧 Custom Loading Component: Obeng + Gear SVG
 function LoadingAHM() {
@@ -106,7 +110,9 @@ function App() {
           <Route path="/dashboardAdmin" element={<Dashboard />} />
             <Route path="/transaksiAdmin" element={<TransaksiAdmin />} />
             <Route path="/Servischart" element={<ServisChart />} />
+             <Route path="/sperpart" element={<Spreperat />} />
           <Route path="/penjualan" element={<SalesManagement />} />
+           <Route path="/pembeliannew" element={<PembelianNew />} />
           <Route path="/dashboardAdmin" element={<DashboardAdmin />} />
           <Route path="/produk">
             <Route index element={<ProdukManagement produkList={produkList} />} />

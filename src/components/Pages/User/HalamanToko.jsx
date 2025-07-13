@@ -110,7 +110,8 @@ function ProductSection({ title, icon: Icon, products, addToCart }) {
 
           return (
             <div key={product.id} className="bg-white rounded-xl shadow hover:shadow-lg transition p-2 flex flex-col">
-              <img src={product.gambar_produk} alt={product.nama_produk} className="w-full h-32 object-cover rounded-lg mb-2" />
+           <img src={product.gambar_produk} alt={product.nama_produk} className="w-full h-32 object-cover rounded-lg mb-2" />
+
               <h3 className="text-sm font-semibold text-gray-800 line-clamp-2 mb-1">{product.nama_produk}</h3>
               <div className="text-xs text-gray-500 flex items-center mb-1">
                 <Star size={14} className="text-yellow-400 mr-1" />

@@ -1,49 +1,63 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
-import { Pie } from "react-chartjs-2";
-import { Chart as ChartJS, ArcElement, Tooltip, Legend } from "chart.js";
-
-ChartJS.register(ArcElement, Tooltip, Legend);
 
 const ServisChart = () => {
-  const [chartData, setChartData] = useState(null);
+  const [imageCharts, setImageCharts] = useState({});
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     axios
       .get("https://ahm.inspirasienergiprimanusa.com/api/servis-grafik")
       .then((res) => {
-        const labels = res.data.map((item) => item.jenis_servis);
-        const values = res.data.map((item) => item.jumlah);
+        const {
+          pie_jenis_servis,
+          bar_tipe_kendaraan,
+          bar_sparepart_top10,
+          bar_sparepart_per_kendaraan,
+          confusion_matrix,
+        } = res.data;
 
-        setChartData({
-          labels: labels,
-          datasets: [
-            {
-              label: "Jumlah Servis",
-              data: values,
-              backgroundColor: [
-                "#FF6384",
-                "#36A2EB",
-                "#FFCE56",
-                "#4BC0C0",
-                "#9966FF",
-              ],
-              borderWidth: 1,
-            },
-          ],
+        setImageCharts({
+          pie_jenis_servis,
+          bar_tipe_kendaraan,
+          bar_sparepart_top10,
+          bar_sparepart_per_kendaraan,
+          confusion_matrix,
         });
+
+        setLoading(false);
       })
       .catch((err) => {
         console.error("Gagal memuat data grafik:", err);
+        setLoading(false);
       });
   }, []);
 
-  if (!chartData) return <p>Memuat grafik...</p>;
+  if (loading) {
+    return (
+      <p className="text-center text-gray-500 py-10">Memuat grafik...</p>
+    );
+  }
 
   return (
-    <div style={{ width: "500px", margin: "auto" }}>
-      <h2>Distribusi Jenis Servis</h2>
-      <Pie data={chartData} />
+    <div className="max-w-6xl mx-auto px-4 py-10 grid gap-10">
+      {Object.entries(imageCharts).map(([key, base64], index) => (
+        <div
+          key={index}
+          className="bg-white shadow rounded-2xl p-6 space-y-4"
+        >
+          <h2 className="text-xl font-semibold text-center capitalize">
+            📊 {key.replace(/_/g, " ")}
+          </h2>
+          <div className="flex justify-center">
+            <img
+              src={`data:image/png;base64,${base64}`}
+              alt={`Grafik ${key}`}
+              className="rounded-xl shadow-md max-w-full h-auto"
+            />
+          </div>
+        </div>
+      ))}
     </div>
   );
 };

@@ -1,38 +1,52 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
+import axios from "axios";
 import DataTable from "react-data-table-component";
+import Swal from "sweetalert2";
+import withReactContent from "sweetalert2-react-content";
 
-const initialBookings = [
-  {
-    id: 1,
-    name: "Ahmad",
-    service: "Servis Mesin",
-    date: "2025-06-03",
-    status: "menunggu",
-    rejectionReason: "",
-  },
-  {
-    id: 2,
-    name: "Rina",
-    service: "Ganti Oli",
-    date: "2025-06-04",
-    status: "menunggu",
-    rejectionReason: "",
-  },
-];
+const MySwal = withReactContent(Swal);
+axios.defaults.baseURL = "https://ahm.inspirasienergiprimanusa.com/api";
 
 export default function Booking() {
-  const [bookings, setBookings] = useState(initialBookings);
+  const [bookings, setBookings] = useState([]);
   const [filterText, setFilterText] = useState("");
   const [showModal, setShowModal] = useState(false);
   const [selectedBookingId, setSelectedBookingId] = useState(null);
   const [rejectionReason, setRejectionReason] = useState("");
 
-  const handleApprove = (id) => {
-    setBookings((prev) =>
-      prev.map((b) =>
-        b.id === id ? { ...b, status: "disetujui", rejectionReason: "" } : b
-      )
-    );
+  useEffect(() => {
+    fetchBookings();
+  }, []);
+
+  const fetchBookings = async () => {
+    try {
+      const response = await axios.get("/bookings");
+      setBookings(response.data);
+    } catch (error) {
+      console.error("Gagal mengambil data:", error);
+    }
+  };
+
+  const handleApprove = async (id) => {
+    const result = await MySwal.fire({
+      title: "Yakin ingin menyetujui?",
+      icon: "question",
+      showCancelButton: true,
+      confirmButtonText: "Ya, Setujui",
+      cancelButtonText: "Batal",
+    });
+
+    if (result.isConfirmed) {
+      try {
+        await axios.put(`/bookings/${id}/status`, {
+          status_booking: "disetujui",
+        });
+        fetchBookings();
+        MySwal.fire("Berhasil!", "Booking disetujui", "success");
+      } catch (error) {
+        MySwal.fire("Gagal", "Tidak bisa menyetujui booking", "error");
+      }
+    }
   };
 
   const handleReject = (id) => {
@@ -41,20 +55,35 @@ export default function Booking() {
     setShowModal(true);
   };
 
-  const confirmReject = () => {
-    setBookings((prev) =>
-      prev.map((b) =>
-        b.id === selectedBookingId
-          ? { ...b, status: "ditolak", rejectionReason }
-          : b
-      )
-    );
-    setShowModal(false);
+  const confirmReject = async () => {
+    if (!rejectionReason.trim()) {
+      MySwal.fire("Alasan wajib diisi", "", "warning");
+      return;
+    }
+
+    try {
+      await axios.put(`/bookings/${selectedBookingId}/status`, {
+        status_booking: "ditolak",
+        alasan_penolakan: rejectionReason,
+      });
+      setShowModal(false);
+      fetchBookings();
+      MySwal.fire("Berhasil!", "Booking ditolak", "success");
+    } catch (error) {
+      MySwal.fire("Gagal", "Tidak bisa menolak booking", "error");
+    }
   };
 
-  // Filter data berdasarkan filterText di kolom name, service, date, status
   const filteredBookings = bookings.filter((b) =>
-    [b.name, b.service, b.date, b.status]
+    [
+      b.nama_customer,
+      b.nomor_hp,
+      b.jenis_servis,
+      b.nama_karyawan,
+      b.tanggal_booking,
+      b.tipe_kendaraan,
+      b.status_booking,
+    ]
       .join(" ")
       .toLowerCase()
       .includes(filterText.toLowerCase())
@@ -62,52 +91,49 @@ export default function Booking() {
 
   const columns = [
     {
-      name: "Nama",
-      selector: (row) => row.name,
-      sortable: true,
+      name: "No",
+      cell: (row, index) => index + 1,
+      width: "60px",
+      sortable: false,
     },
-    {
-      name: "Layanan",
-      selector: (row) => row.service,
-      sortable: true,
-    },
-    {
-      name: "Tanggal",
-      selector: (row) => row.date,
-      sortable: true,
-      sortFunction: (a, b) => new Date(a.date) - new Date(b.date),
-    },
+    { name: "Nama", selector: (row) => row.nama_customer, sortable: true },
+    { name: "Nomor HP", selector: (row) => row.nomor_hp, sortable: true },
+    { name: "Layanan", selector: (row) => row.jenis_servis, sortable: true },
+    { name: "Karyawan", selector: (row) => row.nama_karyawan, sortable: true },
+    { name: "Tanggal", selector: (row) => row.tanggal_booking, sortable: true },
+    { name: "Tipe Kendaraan", selector: (row) => row.tipe_kendaraan, sortable: true },
     {
       name: "Status",
-      selector: (row) => row.status,
+      selector: (row) => row.status_booking,
       sortable: true,
       cell: (row) => {
-        if (row.status === "disetujui") {
-          return (
-            <span className="inline-flex px-2 text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
-              Disetujui
-            </span>
-          );
-        } else if (row.status === "ditolak") {
-          return (
-            <span className="inline-flex px-2 text-xs leading-5 font-semibold rounded-full bg-red-100 text-red-800">
-              Ditolak
-            </span>
-          );
-        } else {
-          return (
-            <span className="inline-flex px-2 text-xs leading-5 font-semibold rounded-full bg-yellow-100 text-yellow-800">
-              Menunggu
-            </span>
-          );
-        }
+        const styleMap = {
+          disetujui: "bg-green-100 text-green-800",
+          ditolak: "bg-red-100 text-red-800",
+          "sedang diproses": "bg-yellow-100 text-yellow-800",
+          menunggu: "bg-yellow-100 text-yellow-800",
+        };
+        return (
+          <span
+            className={`inline-flex px-2 text-xs font-semibold rounded-full ${
+              styleMap[row.status_booking] || "bg-gray-200 text-gray-800"
+            }`}
+          >
+            {row.status_booking}
+          </span>
+        );
       },
-      center: true,
+    },
+    {
+      name: "Alasan Penolakan",
+      selector: (row) =>
+        row.status_booking === "ditolak" ? row.alasan_penolakan || "-" : "-",
     },
     {
       name: "Aksi",
       cell: (row) =>
-        row.status === "menunggu" ? (
+        row.status_booking === "sedang diproses" ||
+        row.status_booking === "menunggu" ? (
           <div className="space-x-2">
             <button
               className="text-green-600 hover:text-green-900 font-semibold"
@@ -122,22 +148,16 @@ export default function Booking() {
               Tolak
             </button>
           </div>
-        ) : row.status === "ditolak" ? (
-          <div className="text-sm text-red-600">Alasan: {row.rejectionReason}</div>
         ) : (
           "-"
         ),
-      ignoreRowClick: true,
-      allowOverflow: true,
-      button: true,
-      center: true,
     },
   ];
 
   return (
     <div className="max-w-6xl mx-auto p-6">
       <div className="bg-white rounded shadow p-6">
-        <h1 className="text-2xl font-semibold mb-6">Management Booking</h1>
+        <h1 className="text-2xl font-semibold mb-6">Manajemen Booking</h1>
 
         <div className="mb-4 px-4">
           <input
@@ -154,19 +174,26 @@ export default function Booking() {
           data={filteredBookings}
           pagination
           highlightOnHover
-          noHeader
           striped
           responsive
           persistTableHead
+          noHeader
+          customStyles={{
+            headCells: {
+              style: { fontWeight: "bold" },
+            },
+          }}
           noDataComponent={
-            <div className="p-4 text-center text-gray-500">Tidak ada data booking</div>
+            <div className="p-4 text-center text-gray-500">
+              Tidak ada data booking
+            </div>
           }
         />
       </div>
 
-      {/* Modal alasan penolakan */}
+      {/* Modal Penolakan */}
       {showModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div className="fixed inset-0 bg-black/10 backdrop-blur-sm flex items-center justify-center z-50">
           <div className="bg-white p-6 rounded shadow-lg w-full max-w-md">
             <h2 className="text-lg font-semibold mb-4">Alasan Penolakan</h2>
             <textarea
@@ -186,7 +213,6 @@ export default function Booking() {
               <button
                 className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
                 onClick={confirmReject}
-                disabled={!rejectionReason.trim()}
               >
                 Konfirmasi Tolak
               </button>
