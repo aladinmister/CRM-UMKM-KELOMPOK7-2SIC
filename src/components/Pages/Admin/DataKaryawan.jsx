@@ -1,5 +1,9 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
+import DataTable from "react-data-table-component";
+import { Card, Modal, Button, Input, Upload } from "antd";
+import { Eye, Pencil, Trash2 } from "lucide-react";
+import { UploadOutlined } from "@ant-design/icons";
 
 export default function KaryawanPage() {
   const [data, setData] = useState([]);
@@ -47,10 +51,8 @@ export default function KaryawanPage() {
     }
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  const handleSubmit = async () => {
     setLoading(true);
-
     const formData = new FormData();
     Object.entries(form).forEach(([key, val]) => {
       if (val !== null) formData.append(key, val);
@@ -104,177 +106,147 @@ export default function KaryawanPage() {
       nama_karyawan: item.nama_karyawan,
       alamat_karyawan: item.alamat_karyawan,
       bidang_keahlian: item.bidang_keahlian,
-      foto_karyawan: null, // akan ditimpa kalau upload baru
+      foto_karyawan: null,
     });
-    setPreviewFoto(`${BASE_URL}/storage/foto_karyawan/${item.foto_karyawan}`);
+    setPreviewFoto(item.foto_karyawan);
     setShowModal(true);
   };
 
+  const columns = [
+    { name: "Nama", selector: (row) => row.nama_karyawan, sortable: true },
+    { name: "Alamat", selector: (row) => row.alamat_karyawan },
+    { name: "Bidang", selector: (row) => row.bidang_keahlian },
+    {
+      name: "Foto",
+      cell: (row) =>
+        row.foto_karyawan && (
+          <img
+            src={row.foto_karyawan}
+            alt="Foto"
+            className="w-16 h-16 object-cover rounded"
+          />
+        ),
+    },
+    {
+      name: "Aksi",
+      cell: (row) => (
+        <div className="flex gap-2">
+          <Button
+            icon={<Eye size={16} />}
+            onClick={() => setViewModal(row)}
+            type="primary"
+            size="small"
+          />
+          <Button
+            icon={<Pencil size={16} />}
+            onClick={() => openEdit(row)}
+            type="default"
+            size="small"
+          />
+          <Button
+            icon={<Trash2 size={16} />}
+            onClick={() => handleDelete(row.id)}
+            danger
+            size="small"
+          />
+        </div>
+      ),
+    },
+  ];
+
   return (
     <div className="p-6">
-      <div className="flex justify-between items-center mb-4">
-        <h2 className="text-2xl font-semibold">Data Karyawan</h2>
-        <button
-          className="bg-blue-600 text-white px-4 py-2 rounded"
-          onClick={() => {
-            resetForm();
-            setShowModal(true);
-          }}
-        >
-          Tambah Data
-        </button>
-      </div>
+      <Card
+        title="Data Karyawan"
+        extra={
+          <Button type="primary" onClick={() => { resetForm(); setShowModal(true); }}>
+            Tambah Data
+          </Button>
+        }
+      >
+        <DataTable
+          columns={columns}
+          data={data}
+          pagination
+          highlightOnHover
+          striped
+          responsive
+        />
+      </Card>
 
-      <table className="min-w-full border text-sm text-left">
-        <thead className="bg-gray-100">
-          <tr>
-            <th className="border px-3 py-2">Nama</th>
-            <th className="border px-3 py-2">Alamat</th>
-            <th className="border px-3 py-2">Bidang</th>
-            <th className="border px-3 py-2">Foto</th>
-            <th className="border px-3 py-2">Aksi</th>
-          </tr>
-        </thead>
-        <tbody>
-          {data.map((item) => (
-            <tr key={item.id}>
-              <td className="border px-3 py-2">{item.nama_karyawan}</td>
-              <td className="border px-3 py-2">{item.alamat_karyawan}</td>
-              <td className="border px-3 py-2">{item.bidang_keahlian}</td>
-              <td className="border px-3 py-2">
-                    {item.foto_karyawan && (
-                <img
-                  src={item.foto_karyawan}
-                  alt={item.foto_karyawan}
-                  className="w-24 h-24 object-cover rounded"
-                />
-              )}
-              </td>
-              <td className="border px-3 py-2 flex gap-2">
-                <button
-                  className="bg-green-600 text-white px-2 py-1 rounded"
-                  onClick={() => setViewModal(item)}
-                >
-                  Show
-                </button>
-                <button
-                  className="bg-yellow-500 text-white px-2 py-1 rounded"
-                  onClick={() => openEdit(item)}
-                >
-                  Edit
-                </button>
-                <button
-                  className="bg-red-600 text-white px-2 py-1 rounded"
-                  onClick={() => handleDelete(item.id)}
-                >
-                  Hapus
-                </button>
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+      {/* Modal Tambah/Edit */}
+      <Modal
+        title={editId ? "Edit Karyawan" : "Tambah Karyawan"}
+        open={showModal}
+        onCancel={() => setShowModal(false)}
+        onOk={handleSubmit}
+        confirmLoading={loading}
+        okText="Simpan"
+        cancelText="Batal"
+      >
+        <Input
+          name="nama_karyawan"
+          placeholder="Nama"
+          value={form.nama_karyawan}
+          onChange={handleChange}
+          className="mb-2"
+        />
+        <Input
+          name="alamat_karyawan"
+          placeholder="Alamat"
+          value={form.alamat_karyawan}
+          onChange={handleChange}
+          className="mb-2"
+        />
+        <Input
+          name="bidang_keahlian"
+          placeholder="Bidang"
+          value={form.bidang_keahlian}
+          onChange={handleChange}
+          className="mb-2"
+        />
+        <input
+          type="file"
+          name="foto_karyawan"
+          onChange={handleChange}
+          accept="image/*"
+          className="mb-2"
+        />
+        {previewFoto && (
+          <img
+            src={previewFoto}
+            alt="Preview"
+            className="w-24 h-24 object-cover mb-2 border rounded"
+          />
+        )}
+      </Modal>
 
-      {/* Form Modal */}
-      {showModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
-          <form
-            className="bg-white p-6 rounded-md w-full max-w-md"
-            onSubmit={handleSubmit}
-            encType="multipart/form-data"
-          >
-            <h3 className="text-xl font-semibold mb-4">
-              {editId ? "Edit Karyawan" : "Tambah Karyawan"}
-            </h3>
-
-            <input
-              type="text"
-              name="nama_karyawan"
-              placeholder="Nama"
-              value={form.nama_karyawan}
-              onChange={handleChange}
-              className="w-full p-2 border rounded mb-2"
-              required
-            />
-
-            <input
-              type="text"
-              name="alamat_karyawan"
-              placeholder="Alamat"
-              value={form.alamat_karyawan}
-              onChange={handleChange}
-              className="w-full p-2 border rounded mb-2"
-            />
-
-            <input
-              type="text"
-              name="bidang_keahlian"
-              placeholder="Bidang Keahlian"
-              value={form.bidang_keahlian}
-              onChange={handleChange}
-              className="w-full p-2 border rounded mb-2"
-            />
-
-            <input
-              type="file"
-              name="foto_karyawan"
-              onChange={handleChange}
-              className="w-full mb-2"
-              accept="image/*"
-            />
-
-            {previewFoto && (
-              <img
-                src={previewFoto}
-                alt="Preview"
-                className="w-24 h-24 object-cover mb-4 border rounded"
-              />
-            )}
-
-            <div className="flex justify-end gap-2">
-              <button
-                type="button"
-                onClick={() => setShowModal(false)}
-                className="bg-gray-400 text-white px-3 py-1 rounded"
-              >
-                Batal
-              </button>
-              <button
-                type="submit"
-                className="bg-blue-600 text-white px-3 py-1 rounded"
-                disabled={loading}
-              >
-                {loading ? "Menyimpan..." : "Simpan"}
-              </button>
-            </div>
-          </form>
-        </div>
-      )}
-
-      {/* View Modal */}
-      {viewModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
-          <div className="bg-white p-6 rounded-md w-full max-w-md">
-            <h3 className="text-xl font-bold mb-4">Detail Karyawan</h3>
+      {/* Modal View */}
+      <Modal
+        title="Detail Karyawan"
+        open={!!viewModal}
+        onCancel={() => setViewModal(null)}
+        footer={[
+          <Button key="close" onClick={() => setViewModal(null)}>
+            Tutup
+          </Button>,
+        ]}
+      >
+        {viewModal && (
+          <div className="space-y-2">
             <p><strong>Nama:</strong> {viewModal.nama_karyawan}</p>
             <p><strong>Alamat:</strong> {viewModal.alamat_karyawan}</p>
             <p><strong>Bidang:</strong> {viewModal.bidang_keahlian}</p>
             {viewModal.foto_karyawan && (
               <img
-                src={`${BASE_URL}/storage/foto_karyawan/${viewModal.foto_karyawan}`}
+                src={viewModal.foto_karyawan}
                 alt="Foto"
-                className="w-32 mt-4 object-cover rounded"
+                className="w-32 object-cover mt-2 rounded"
               />
             )}
-            <button
-              onClick={() => setViewModal(null)}
-              className="mt-4 bg-gray-500 text-white px-4 py-2 rounded"
-            >
-              Tutup
-            </button>
           </div>
-        </div>
-      )}
+        )}
+      </Modal>
     </div>
   );
 }

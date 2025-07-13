@@ -1,3 +1,4 @@
+// 📦 REACT BOOKING PAGE
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import DataTable from "react-data-table-component";
@@ -10,9 +11,11 @@ axios.defaults.baseURL = "https://ahm.inspirasienergiprimanusa.com/api";
 export default function Booking() {
   const [bookings, setBookings] = useState([]);
   const [filterText, setFilterText] = useState("");
-  const [showModal, setShowModal] = useState(false);
+  const [showRejectModal, setShowRejectModal] = useState(false);
   const [selectedBookingId, setSelectedBookingId] = useState(null);
   const [rejectionReason, setRejectionReason] = useState("");
+  const [showSparepartModal, setShowSparepartModal] = useState(false);
+  const [sparepartText, setSparepartText] = useState("");
 
   useEffect(() => {
     fetchBookings();
@@ -52,7 +55,7 @@ export default function Booking() {
   const handleReject = (id) => {
     setSelectedBookingId(id);
     setRejectionReason("");
-    setShowModal(true);
+    setShowRejectModal(true);
   };
 
   const confirmReject = async () => {
@@ -66,11 +69,31 @@ export default function Booking() {
         status_booking: "ditolak",
         alasan_penolakan: rejectionReason,
       });
-      setShowModal(false);
+      setShowRejectModal(false);
       fetchBookings();
       MySwal.fire("Berhasil!", "Booking ditolak", "success");
     } catch (error) {
       MySwal.fire("Gagal", "Tidak bisa menolak booking", "error");
+    }
+  };
+
+  const handleComplete = (id) => {
+    setSelectedBookingId(id);
+    setSparepartText("");
+    setShowSparepartModal(true);
+  };
+
+  const confirmComplete = async () => {
+    try {
+      await axios.put(`/bookings/${selectedBookingId}`, {
+        status_booking: "selesai",
+        sparepart: sparepartText,
+      });
+      setShowSparepartModal(false);
+      fetchBookings();
+      MySwal.fire("Selesai!", "Booking telah diselesaikan", "success");
+    } catch (error) {
+      MySwal.fire("Gagal", "Tidak bisa menyelesaikan booking", "error");
     }
   };
 
@@ -90,28 +113,22 @@ export default function Booking() {
   );
 
   const columns = [
-    {
-      name: "No",
-      cell: (row, index) => index + 1,
-      width: "60px",
-      sortable: false,
-    },
+    { name: "No", cell: (row, index) => index + 1, width: "60px" },
     { name: "Nama", selector: (row) => row.nama_customer, sortable: true },
-    { name: "Nomor HP", selector: (row) => row.nomor_hp, sortable: true },
-    { name: "Layanan", selector: (row) => row.jenis_servis, sortable: true },
-    { name: "Karyawan", selector: (row) => row.nama_karyawan, sortable: true },
-    { name: "Tanggal", selector: (row) => row.tanggal_booking, sortable: true },
-    { name: "Tipe Kendaraan", selector: (row) => row.tipe_kendaraan, sortable: true },
+    { name: "Nomor HP", selector: (row) => row.nomor_hp },
+    { name: "Layanan", selector: (row) => row.jenis_servis },
+    { name: "Karyawan", selector: (row) => row.nama_karyawan },
+    { name: "Tanggal", selector: (row) => row.tanggal_booking },
+    { name: "Tipe", selector: (row) => row.tipe_kendaraan },
     {
       name: "Status",
-      selector: (row) => row.status_booking,
-      sortable: true,
       cell: (row) => {
         const styleMap = {
           disetujui: "bg-green-100 text-green-800",
           ditolak: "bg-red-100 text-red-800",
           "sedang diproses": "bg-yellow-100 text-yellow-800",
           menunggu: "bg-yellow-100 text-yellow-800",
+          selesai: "bg-blue-100 text-blue-800",
         };
         return (
           <span
@@ -125,32 +142,47 @@ export default function Booking() {
       },
     },
     {
+      name: "Sparepart",
+      selector: (row) => row.sparepart || "-",
+    },
+    {
       name: "Alasan Penolakan",
       selector: (row) =>
         row.status_booking === "ditolak" ? row.alasan_penolakan || "-" : "-",
     },
     {
       name: "Aksi",
-      cell: (row) =>
-        row.status_booking === "sedang diproses" ||
-        row.status_booking === "menunggu" ? (
-          <div className="space-x-2">
+      cell: (row) => {
+        if (row.status_booking === "sedang diproses" || row.status_booking === "menunggu") {
+          return (
+            <div className="space-x-2">
+              <button
+                className="text-green-600 hover:text-green-900 font-semibold"
+                onClick={() => handleApprove(row.id)}
+              >
+                Setujui
+              </button>
+              <button
+                className="text-red-600 hover:text-red-900 font-semibold"
+                onClick={() => handleReject(row.id)}
+              >
+                Tolak
+              </button>
+            </div>
+          );
+        } else if (row.status_booking === "disetujui") {
+          return (
             <button
-              className="text-green-600 hover:text-green-900 font-semibold"
-              onClick={() => handleApprove(row.id)}
+              className="text-blue-600 hover:text-blue-900 font-semibold"
+              onClick={() => handleComplete(row.id)}
             >
-              Setujui
+              Tandai Selesai
             </button>
-            <button
-              className="text-red-600 hover:text-red-900 font-semibold"
-              onClick={() => handleReject(row.id)}
-            >
-              Tolak
-            </button>
-          </div>
-        ) : (
-          "-"
-        ),
+          );
+        } else {
+          return "-";
+        }
+      },
     },
   ];
 
@@ -177,22 +209,11 @@ export default function Booking() {
           striped
           responsive
           persistTableHead
-          noHeader
-          customStyles={{
-            headCells: {
-              style: { fontWeight: "bold" },
-            },
-          }}
-          noDataComponent={
-            <div className="p-4 text-center text-gray-500">
-              Tidak ada data booking
-            </div>
-          }
         />
       </div>
 
       {/* Modal Penolakan */}
-      {showModal && (
+      {showRejectModal && (
         <div className="fixed inset-0 bg-black/10 backdrop-blur-sm flex items-center justify-center z-50">
           <div className="bg-white p-6 rounded shadow-lg w-full max-w-md">
             <h2 className="text-lg font-semibold mb-4">Alasan Penolakan</h2>
@@ -206,7 +227,7 @@ export default function Booking() {
             <div className="flex justify-end space-x-2">
               <button
                 className="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400"
-                onClick={() => setShowModal(false)}
+                onClick={() => setShowRejectModal(false)}
               >
                 Batal
               </button>
@@ -215,6 +236,36 @@ export default function Booking() {
                 onClick={confirmReject}
               >
                 Konfirmasi Tolak
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal Selesai */}
+      {showSparepartModal && (
+        <div className="fixed inset-0 bg-black/10 backdrop-blur-sm flex items-center justify-center z-50">
+          <div className="bg-white p-6 rounded shadow-lg w-full max-w-md">
+            <h2 className="text-lg font-semibold mb-4">Sparepart yang Diganti</h2>
+            <textarea
+              className="w-full p-2 border rounded mb-4"
+              rows={4}
+              value={sparepartText}
+              onChange={(e) => setSparepartText(e.target.value)}
+              placeholder="Contoh: Oli Mesin, Kampas Rem"
+            />
+            <div className="flex justify-end space-x-2">
+              <button
+                className="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400"
+                onClick={() => setShowSparepartModal(false)}
+              >
+                Batal
+              </button>
+              <button
+                className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+                onClick={confirmComplete}
+              >
+                Tandai Selesai
               </button>
             </div>
           </div>

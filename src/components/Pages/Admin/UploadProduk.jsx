@@ -244,18 +244,7 @@ function ProdukFormModal({ isOpen, onClose, form, handleChange, handleSubmit, is
             )}
           </div>
 
-          {/* Status Aktif */}
-          <div style={{ gridColumn: 'span 2 / span 2', display: 'flex', alignItems: 'center' }}>
-            <input
-              type="checkbox"
-              id="is_active"
-              name="is_active"
-              checked={form.is_active}
-              onChange={handleChange}
-              style={{ marginRight: '8px', height: '16px', width: '16px', /* checkbox styles more complex */ }}
-            />
-            <label htmlFor="is_active" style={{ fontWeight: '500', color: '#374151' }}>Produk Aktif</label>
-          </div>
+         
           {/* Note: The submit button is now outside the <form> tag, but it's linked by its `form` attribute */}
           <button type="submit" form="produk-form" style={{ display: 'none' }}></button> {/* Hidden submit button */}
         </form>
@@ -350,7 +339,7 @@ function ProdukDetailModal({ isOpen, onClose, product }) {
           <p style={detailTextStyle}><strong style={{ fontWeight: '600', color: '#374151' }}>Terjual:</strong> {product.produk_terjual}</p>
           <p style={detailTextStyle}><strong style={{ fontWeight: '600', color: '#374151' }}>Rating:</strong> {product.rating_produk}</p>
           <p style={detailTextStyle}><strong style={{ fontWeight: '600', color: '#374151' }}>Deskripsi:</strong> {product.deskripsi_produk || '-'}</p>
-          <p style={detailTextStyle}><strong style={{ fontWeight: '600', color: '#374151' }}>Status:</strong> {product.is_active ? 'Aktif' : 'Tidak Aktif'}</p>
+         
         </div>
         <div style={{ padding: '24px', borderTop: '1px solid #e5e7eb', textAlign: 'right', backgroundColor: '#f9fafb' }}>
           <button
@@ -624,13 +613,17 @@ export default function UploadProduk() {
   };
 
   // Card-like div styles
-  const cardStyle = {
-    backgroundColor: 'white',
-    boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)', // shadow-lg
-    borderRadius: '8px', // rounded-lg
-    padding: '24px', // p-6
-    marginBottom: '32px', // mb-8
-  };
+const cardStyle = {
+  backgroundColor: 'rgba(255, 255, 255, 0.7)',   // semi-transparan putih
+  backdropFilter: 'blur(10px)',                 // blur latar belakang
+  WebkitBackdropFilter: 'blur(10px)',           // dukungan Safari
+  boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)',
+  borderRadius: '12px',                         // rounded-xl
+  padding: '24px',
+  marginBottom: '32px',
+  border: '1px solid rgba(255, 255, 255, 0.3)',  // border tipis agar lebih kontras
+};
+
 
   // Flex container styles
   const flexBetweenStyle = {
@@ -768,9 +761,8 @@ export default function UploadProduk() {
 
 
   return (
-    <div style={mainContainerStyle}>
-      <h1 style={{ fontSize: '2.25rem', fontWeight: '800', color: '#1f2937', marginBottom: '32px', textAlign: 'center' }}>Manajemen Produk</h1>
-
+   
+     <>
       <div style={cardStyle}>
         <div style={flexBetweenStyle}>
           <h2 style={{ fontSize: '1.5rem', fontWeight: '600', color: '#1f2937' }}>Daftar Produk</h2>
@@ -820,7 +812,7 @@ export default function UploadProduk() {
                     <th style={thStyle}>Stok</th>
                     <th style={thStyle}>Harga</th>
                     <th style={thStyle}>Berat (g)</th>
-                    <th style={thStyle}>Status</th>
+                   
                     <th style={{ ...thStyle, textAlign: 'center' }}>Aksi</th>
                   </tr>
                 </thead>
@@ -844,11 +836,7 @@ export default function UploadProduk() {
                         <td style={tdStyle}>{produk.stock_produk}</td>
                         <td style={tdStyle}>Rp{produk.harga_produk.toLocaleString('id-ID')}</td>
                         <td style={tdStyle}>{produk.berat_produk}</td>
-                        <td style={tdStyle}>
-                          <span style={produk.is_active ? statusActiveStyle : statusInactiveStyle}>
-                            {produk.is_active ? 'Aktif' : 'Tidak Aktif'}
-                          </span>
-                        </td>
+                      
                         <td style={{ ...tdStyle, textAlign: 'center' }}>
                           <div style={{ display: 'flex', justifyContent: 'center', gap: '8px' }}>
                             <button
@@ -957,6 +945,7 @@ export default function UploadProduk() {
         onClose={() => setShowDetailModal(false)}
         product={selectedProduct}
       />
-    </div>
+      </>
+   
   );
 }

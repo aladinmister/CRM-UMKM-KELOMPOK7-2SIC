@@ -5,6 +5,7 @@ import {
   Heart, PlusCircle, CreditCard, MapPin, Truck, Loader, User
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { motion, AnimatePresence } from 'framer-motion';
 
 // Daftar kategori produk
 const kategoriList = [
@@ -25,18 +26,46 @@ const RAJAONGKIR_ORIGIN_CITY = '350'; // ID kota Pekanbaru
 // URL API backend
 const API_BASE_URL = 'https://ahm.inspirasienergiprimanusa.com';
 
-// Komponen untuk bubble kategori
+// Komponen untuk bubble kategori dengan animasi
 const CategoryBubble = ({ label, icon, active, onClick }) => (
-  <button onClick={() => onClick(label)} className="flex flex-col items-center justify-center space-y-1 w-20 focus:outline-none">
-    <div className={`w-16 h-16 rounded-full flex items-center justify-center text-2xl shadow ${active ? 'bg-red-600 text-white' : 'bg-white text-red-600 border border-red-600'}`}>{icon}</div>
-    <span className={`text-sm text-center ${active ? 'text-red-600 font-semibold' : 'text-gray-700'}`}>{label}</span>
-  </button>
+  <motion.button 
+    whileHover={{ scale: 1.05 }}
+    whileTap={{ scale: 0.95 }}
+    onClick={() => onClick(label)} 
+    className="flex flex-col items-center justify-center space-y-1 w-20 focus:outline-none"
+  >
+    <motion.div 
+      initial={false}
+      animate={{ 
+        backgroundColor: active ? '#dc2626' : '#ffffff',
+        color: active ? '#ffffff' : '#dc2626',
+        borderColor: active ? 'transparent' : '#dc2626'
+      }}
+      className="w-16 h-16 rounded-full flex items-center justify-center text-2xl shadow"
+    >
+      {icon}
+    </motion.div>
+    <motion.span 
+      animate={{ 
+        color: active ? '#dc2626' : '#374151',
+        fontWeight: active ? '600' : '400'
+      }}
+      className="text-sm text-center"
+    >
+      {label}
+    </motion.span>
+  </motion.button>
 );
 
-// Komponen untuk menampilkan daftar kategori
+// Komponen untuk menampilkan daftar kategori dengan animasi
 function KategoriSection({ selectedKategori, onSelect }) {
   return (
-    <div className="grid grid-cols-3 sm:grid-cols-6 gap-4 mb-10">
+    <motion.div 
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.5 }}
+      className="grid grid-cols-3 sm:grid-cols-6 gap-4 mb-10"
+    >
       {kategoriList.map((kategori, i) => (
         <CategoryBubble
           key={i}
@@ -46,11 +75,11 @@ function KategoriSection({ selectedKategori, onSelect }) {
           onClick={onSelect}
         />
       ))}
-    </div>
+    </motion.div>
   );
 }
 
-// Komponen Carousel untuk banner promo
+// Komponen Carousel untuk banner promo dengan animasi
 function Carousel() {
   const [current, setCurrent] = useState(0);
   const slides = [
@@ -59,7 +88,6 @@ function Carousel() {
     'https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEircB8GX_fWNC76QlWRHFKUA3GGXodBx4Y9wBB_limZ-epprpjewURZ7ueGGxN-3LqQ8xpVQwbjoPFQ1eXVMLnKmRkul9U1EmEox2XBNk63OtrK_klRpcYeH0U2l91VkQdOmMDNDAYYiqdy/s640/AHM+OIL.png',
   ];
 
-  // Otomatis ganti slide setiap 4 detik
   useEffect(() => {
     const timer = setInterval(() => {
       setCurrent((prev) => (prev + 1) % slides.length);
@@ -69,14 +97,22 @@ function Carousel() {
 
   return (
     <div className="relative w-full h-64 sm:h-96 overflow-hidden rounded-xl shadow mb-6 bg-black">
-      {slides.map((src, i) => (
-        <img
-          key={i}
-          src={src}
-          alt={`Slide ${i}`}
-          className={`absolute top-0 left-0 w-full h-full object-cover transition-opacity duration-1000 ${i === current ? 'opacity-100 z-10' : 'opacity-0 z-0'}`}
-        />
-      ))}
+      <AnimatePresence mode="wait">
+        <motion.div
+          key={current}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 1 }}
+          className="absolute top-0 left-0 w-full h-full"
+        >
+          <img
+            src={slides[current]}
+            alt={`Slide ${current}`}
+            className="w-full h-full object-cover"
+          />
+        </motion.div>
+      </AnimatePresence>
     </div>
   );
 }
@@ -96,7 +132,7 @@ function getHargaFinal(product) {
   return isPromo(product) ? parseInt(product.harga_promo) : parseInt(product.harga_produk);
 }
 
-// Komponen untuk menampilkan daftar produk
+// Komponen untuk menampilkan daftar produk dengan animasi
 function ProductSection({ title, icon: Icon, products, addToCart, isLoggedIn }) {
   const navigate = useNavigate();
 
@@ -109,18 +145,30 @@ function ProductSection({ title, icon: Icon, products, addToCart, isLoggedIn }) 
   };
 
   return (
-    <div className="mb-10">
+    <motion.div 
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.5 }}
+      className="mb-10"
+    >
       <div className="flex items-center gap-2 mb-4">
         {Icon && <Icon className="text-red-600" />}
         <h2 className="text-xl font-semibold text-gray-900">{title}</h2>
       </div>
       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
-        {products.map(product => {
+        {products.map((product, index) => {
           const promo = isPromo(product);
           const diskon = promo ? Math.round((1 - parseInt(product.harga_promo) / parseInt(product.harga_produk)) * 100) : 0;
 
           return (
-            <div key={product.id} className="bg-white rounded-xl shadow hover:shadow-lg transition p-2 flex flex-col">
+            <motion.div
+              key={product.id}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.3, delay: index * 0.05 }}
+              whileHover={{ y: -5 }}
+              className="bg-white rounded-xl shadow hover:shadow-lg transition p-2 flex flex-col"
+            >
               <img src={product.gambar_produk} alt={product.nama_produk} className="w-full h-32 object-cover rounded-lg mb-2" />
 
               <h3 className="text-sm font-semibold text-gray-800 line-clamp-2 mb-1">{product.nama_produk}</h3>
@@ -138,21 +186,23 @@ function ProductSection({ title, icon: Icon, products, addToCart, isLoggedIn }) 
                   <div className="text-red-600 font-bold text-sm">Rp{parseInt(product.harga_produk).toLocaleString()}</div>
                 )}
               </div>
-              <button 
+              <motion.button 
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
                 onClick={() => handleBuyClick(product)}
                 className="mt-2 w-full text-white bg-green-600 hover:bg-green-700 text-xs px-3 py-2 rounded flex items-center justify-center gap-1"
               >
                 <CreditCard size={14} /> Beli Sekarang
-              </button>
-            </div>
+              </motion.button>
+            </motion.div>
           );
         })}
       </div>
-    </div>
+    </motion.div>
   );
 }
 
-// Komponen Keranjang Belanja
+// Komponen Keranjang Belanja dengan animasi
 function Keranjang({
   cart,
   updateQty,
@@ -185,18 +235,15 @@ function Keranjang({
 }) {
   const navigate = useNavigate();
   
-  // Hitung total harga produk, berat, dan pembayaran
   const totalHargaProduk = cart.reduce((acc, item) => acc + item.harga_final * item.qty, 0);
   const totalPembayaran = totalHargaProduk + (shippingCost || 0);
   const totalBerat = cart.reduce((acc, item) => acc + (item.berat_produk ? parseInt(item.berat_produk) : 1) * item.qty, 0);
 
-  // Fungsi untuk menampilkan notifikasi
   const displayNotification = (message, type = 'error') => {
     setNotification({ message, type });
     setTimeout(() => setNotification(null), 3000);
   };
 
-  // Handler untuk perubahan provinsi
   const handleProvinceChange = (e) => {
     const provinceId = e.target.value;
     setSelectedProvince(provinceId);
@@ -208,7 +255,6 @@ function Keranjang({
     fetchCities(provinceId);
   };
 
-  // Handler untuk perubahan kota
   const handleCityChange = (e) => {
     const cityId = e.target.value;
     setSelectedCity(cityId);
@@ -216,7 +262,6 @@ function Keranjang({
     setShippingCost(0); 
     setShippingCourier(''); 
     
-    // Set kode pos otomatis jika tersedia
     const selectedCityData = cities.find(city => city.city_id === cityId);
     if (selectedCityData && selectedCityData.postal_code) {
       setDestinationAddress(prev => ({ ...prev, postalCode: selectedCityData.postal_code }));
@@ -227,17 +272,14 @@ function Keranjang({
     }
   };
 
-  // Handler untuk perubahan alamat
   const handleAddressChange = (e) => {
     setDestinationAddress({ ...destinationAddress, [e.target.name]: e.target.value });
   };
 
-  // Handler untuk perubahan data pelanggan
   const handleCustomerDataChange = (e) => {
     setCustomerData({ ...customerData, [e.target.name]: e.target.value });
   };
 
-  // Handler untuk cek ongkos kirim
   const handleCheckOngkir = () => {
     if (!isLoggedIn) {
       navigate('/login');
@@ -260,7 +302,6 @@ function Keranjang({
     fetchShippingCosts(totalBerat, selectedCity);
   };
 
-  // Handler untuk memilih kurir pengiriman
   const handleCourierSelect = (cost, courierCode, service) => {
     setShippingCost(cost);
     const formattedCourierName = `${courierCode.toUpperCase()} - ${service}`;
@@ -268,27 +309,49 @@ function Keranjang({
   };
 
   return (
-    <div className={`fixed top-0 right-0 w-full max-w-md h-full bg-white shadow-lg z-50 transform ${isOpen ? 'translate-x-0' : 'translate-x-full'} transition-transform duration-300 flex flex-col`}>
+    <motion.div 
+      initial={{ x: '100%' }}
+      animate={{ x: isOpen ? 0 : '100%' }}
+      transition={{ type: 'spring', damping: 30 }}
+      className="fixed top-0 right-0 w-full max-w-md h-full bg-white shadow-lg z-50 flex flex-col"
+    >
       <div className="flex items-center justify-between px-4 py-3 border-b flex-shrink-0">
         <h3 className="text-lg font-semibold">Keranjang Belanja & Pengiriman</h3>
-        <button onClick={onClose} className="text-gray-500 hover:text-gray-700">Tutup</button>
+        <motion.button 
+          whileHover={{ scale: 1.1 }}
+          whileTap={{ scale: 0.9 }}
+          onClick={onClose} 
+          className="text-gray-500 hover:text-gray-700"
+        >
+          Tutup
+        </motion.button>
       </div>
       <div className="flex-1 overflow-y-auto p-4 space-y-4">
         {notification && (
-          <div className={`p-3 rounded-md text-sm ${notification.type === 'error' ? 'bg-red-100 text-red-700' : notification.type === 'warning' ? 'bg-yellow-100 text-yellow-700' : 'bg-blue-100 text-blue-700'}`}>
+          <motion.div
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0 }}
+            className={`p-3 rounded-md text-sm ${notification.type === 'error' ? 'bg-red-100 text-red-700' : notification.type === 'warning' ? 'bg-yellow-100 text-yellow-700' : 'bg-blue-100 text-blue-700'}`}
+          >
             {notification.message}
-          </div>
+          </motion.div>
         )}
 
         {/* Form Data Pelanggan */}
-        <div className="bg-gray-50 p-4 rounded-lg">
+        <motion.div 
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          className="bg-gray-50 p-4 rounded-lg"
+        >
           <h4 className="font-bold text-md mb-3 flex items-center gap-2">
             <User size={18} /> Data Pelanggan
           </h4>
           <div className="space-y-3">
             <div>
               <label htmlFor="customerName" className="block text-sm font-medium text-gray-700">Nama Lengkap</label>
-              <input
+              <motion.input
+                whileFocus={{ scale: 1.01 }}
                 type="text"
                 id="customerName"
                 name="name"
@@ -301,7 +364,8 @@ function Keranjang({
             </div>
             <div>
               <label htmlFor="customerEmail" className="block text-sm font-medium text-gray-700">Email</label>
-              <input
+              <motion.input
+                whileFocus={{ scale: 1.01 }}
                 type="email"
                 id="customerEmail"
                 name="email"
@@ -314,7 +378,8 @@ function Keranjang({
             </div>
             <div>
               <label htmlFor="customerPhone" className="block text-sm font-medium text-gray-700">Nomor Telepon</label>
-              <input
+              <motion.input
+                whileFocus={{ scale: 1.01 }}
                 type="tel"
                 id="customerPhone"
                 name="phone"
@@ -326,28 +391,62 @@ function Keranjang({
               />
             </div>
           </div>
-        </div>
+        </motion.div>
 
         {cart.length === 0 ? (
-          <p className="text-gray-500">Keranjang kosong.</p>
+          <motion.p 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="text-gray-500"
+          >
+            Keranjang kosong.
+          </motion.p>
         ) : (
           <>
             <h4 className="font-bold text-md mb-2 flex items-center gap-2"><ShoppingCart size={18} /> Isi Keranjang</h4>
-            {cart.map(item => (
-              <div key={item.id} className="flex items-center gap-3 border-b pb-3">
-                <img src={item.gambar_produk} alt={item.nama_produk} className="w-16 h-16 rounded object-cover" />
-                <div className="flex-1">
-                  <h4 className="font-semibold text-sm line-clamp-1">{item.nama_produk}</h4>
-                  <div className="text-xs text-gray-500">Rp{parseInt(item.harga_final).toLocaleString()}</div>
-                  <div className="flex items-center mt-1 flex-wrap">
-                    <button onClick={() => updateQty(item.id, item.qty - 1)} className="px-2 text-red-600">-</button>
-                    <span className="px-2">{item.qty}</span>
-                    <button onClick={() => updateQty(item.id, item.qty + 1)} className="px-2 text-green-600">+</button>
-                    <button onClick={() => removeFromCart(item.id)} className="ml-auto text-red-600 text-sm">Hapus</button>
+            <AnimatePresence>
+              {cart.map((item, index) => (
+                <motion.div
+                  key={item.id}
+                  initial={{ opacity: 0, x: 20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: 20 }}
+                  transition={{ delay: index * 0.05 }}
+                  className="flex items-center gap-3 border-b pb-3"
+                >
+                  <img src={item.gambar_produk} alt={item.nama_produk} className="w-16 h-16 rounded object-cover" />
+                  <div className="flex-1">
+                    <h4 className="font-semibold text-sm line-clamp-1">{item.nama_produk}</h4>
+                    <div className="text-xs text-gray-500">Rp{parseInt(item.harga_final).toLocaleString()}</div>
+                    <div className="flex items-center mt-1 flex-wrap">
+                      <motion.button 
+                        whileTap={{ scale: 0.9 }}
+                        onClick={() => updateQty(item.id, item.qty - 1)} 
+                        className="px-2 text-red-600"
+                      >
+                        -
+                      </motion.button>
+                      <span className="px-2">{item.qty}</span>
+                      <motion.button 
+                        whileTap={{ scale: 0.9 }}
+                        onClick={() => updateQty(item.id, item.qty + 1)} 
+                        className="px-2 text-green-600"
+                      >
+                        +
+                      </motion.button>
+                      <motion.button 
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                        onClick={() => removeFromCart(item.id)} 
+                        className="ml-auto text-red-600 text-sm"
+                      >
+                        Hapus
+                      </motion.button>
+                    </div>
                   </div>
-                </div>
-              </div>
-            ))}
+                </motion.div>
+              ))}
+            </AnimatePresence>
             <div className="text-right text-sm font-semibold mt-2">Total Berat: {totalBerat} gram</div>
 
             <hr className="my-4" />
@@ -356,25 +455,41 @@ function Keranjang({
             <div className="space-y-3">
               <div>
                 <label htmlFor="province" className="block text-sm font-medium text-gray-700">Provinsi</label>
-                <select id="province" name="province" value={selectedProvince} onChange={handleProvinceChange} className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-red-500 focus:border-red-500 sm:text-sm rounded-md">
+                <motion.select 
+                  whileFocus={{ scale: 1.01 }}
+                  id="province" 
+                  name="province" 
+                  value={selectedProvince} 
+                  onChange={handleProvinceChange} 
+                  className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-red-500 focus:border-red-500 sm:text-sm rounded-md"
+                >
                   <option value="">Pilih Provinsi</option>
                   {provinces.map(prov => (
                     <option key={prov.province_id} value={prov.province_id}>{prov.province}</option>
                   ))}
-                </select>
+                </motion.select>
               </div>
               <div>
                 <label htmlFor="city" className="block text-sm font-medium text-gray-700">Kota/Kabupaten</label>
-                <select id="city" name="city" value={selectedCity} onChange={handleCityChange} disabled={!selectedProvince || cities.length === 0} className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-red-500 focus:border-red-500 sm:text-sm rounded-md">
+                <motion.select 
+                  whileFocus={{ scale: 1.01 }}
+                  id="city" 
+                  name="city" 
+                  value={selectedCity} 
+                  onChange={handleCityChange} 
+                  disabled={!selectedProvince || cities.length === 0} 
+                  className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-red-500 focus:border-red-500 sm:text-sm rounded-md"
+                >
                   <option value="">Pilih Kota/Kabupaten</option>
                   {cities.map(city => (
                     <option key={city.city_id} value={city.city_id}>{city.type} {city.city_name}</option>
                   ))}
-                </select>
+                </motion.select>
               </div>
               <div>
                 <label htmlFor="postalCode" className="block text-sm font-medium text-gray-700">Kode Pos</label>
-                <input
+                <motion.input
+                  whileFocus={{ scale: 1.01 }}
                   type="text"
                   id="postalCode"
                   name="postalCode"
@@ -386,7 +501,8 @@ function Keranjang({
               </div>
               <div>
                 <label htmlFor="detailAddress" className="block text-sm font-medium text-gray-700">Detail Alamat (Nama Desa, Jalan, No. Rumah)</label>
-                <textarea
+                <motion.textarea
+                  whileFocus={{ scale: 1.01 }}
                   id="detailAddress"
                   name="detailAddress"
                   rows="3"
@@ -394,11 +510,12 @@ function Keranjang({
                   onChange={handleAddressChange}
                   className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-red-500 focus:border-red-500 sm:text-sm"
                   placeholder="Contoh: Desa Suka Maju, Jl. Merdeka No. 10"
-                ></textarea>
+                ></motion.textarea>
               </div>
               <div>
                 <label htmlFor="notes" className="block text-sm font-medium text-gray-700">Catatan Lokasi (Opsional)</label>
-                <input
+                <motion.input
+                  whileFocus={{ scale: 1.01 }}
                   type="text"
                   id="notes"
                   name="notes"
@@ -410,7 +527,9 @@ function Keranjang({
               </div>
             </div>
 
-            <button
+            <motion.button
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
               onClick={handleCheckOngkir}
               disabled={!selectedCity || totalBerat === 0 || isLoadingShipping} 
               className="mt-4 w-full bg-blue-600 hover:bg-blue-700 text-white py-2 rounded text-sm font-semibold flex items-center justify-center gap-2"
@@ -424,15 +543,23 @@ function Keranjang({
                   <Truck size={18} /> Cek Ongkos Kirim
                 </>
               )}
-            </button>
+            </motion.button>
 
             {shippingOptions.length > 0 && !isLoadingShipping && (
-              <div className="mt-4">
+              <motion.div 
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: 'auto' }}
+                className="mt-4"
+              >
                 <h4 className="font-bold text-md mb-2 flex items-center gap-2"><Truck size={18} /> Jasa Pengiriman Tersedia</h4>
                 <div className="space-y-2">
                   {shippingOptions.map((option, index) => (
-                    <div
-                      key={`${option.courier}-${option.service}-${index}`} 
+                    <motion.div
+                      key={`${option.courier}-${option.service}-${index}`}
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: index * 0.05 }}
+                      whileHover={{ scale: 1.01 }}
                       className={`flex items-center justify-between p-3 border rounded-md cursor-pointer ${shippingCourier === `${option.courier.toUpperCase()} - ${option.service}` ? 'border-red-600 ring-1 ring-red-600' : 'border-gray-200'}`}
                       onClick={() => handleCourierSelect(option.cost[0].value, option.courier, option.service)}
                     >
@@ -441,15 +568,19 @@ function Keranjang({
                         <p className="text-xs text-gray-500">Estimasi: ${option.etd} hari</p>
                       </div>
                       <span className="font-bold text-red-600">Rp{option.cost[0].value.toLocaleString()}</span>
-                    </div>
+                    </motion.div>
                   ))}
                 </div>
-              </div>
+              </motion.div>
             )}
             {shippingOptions.length === 0 && !isLoadingShipping && selectedCity && totalBerat > 0 && (
-                <div className="mt-4 p-3 bg-yellow-100 text-yellow-700 rounded-md text-sm">
-                    Tidak ada opsi pengiriman tersedia untuk tujuan ini atau berat produk tidak valid. Pastikan berat produk lebih dari 0.
-                </div>
+              <motion.div 
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                className="mt-4 p-3 bg-yellow-100 text-yellow-700 rounded-md text-sm"
+              >
+                Tidak ada opsi pengiriman tersedia untuk tujuan ini atau berat produk tidak valid. Pastikan berat produk lebih dari 0.
+              </motion.div>
             )}
           </>
         )}
@@ -467,13 +598,14 @@ function Keranjang({
           <span className="text-sm font-semibold">Total Pembayaran:</span>
           <span className="text-lg font-bold text-red-600">Rp{totalPembayaran.toLocaleString()}</span>
         </div>
-        <button
+        <motion.button
+          whileHover={{ scale: 1.02 }}
+          whileTap={{ scale: 0.98 }}
           onClick={() => {
             if (!isLoggedIn) {
               navigate('/login');
               return;
             }
-            // Validasi data pelanggan sebelum checkout
             if (!customerData.name || !customerData.email || !customerData.phone) {
               displayNotification("Harap lengkapi data pelanggan (nama, email, dan telepon)", 'error');
               return;
@@ -484,9 +616,9 @@ function Keranjang({
           className="w-full bg-green-600 hover:bg-green-700 text-white py-2 rounded text-sm font-semibold"
         >
           Bayar Sekarang
-        </button>
+        </motion.button>
       </div>
-    </div>
+    </motion.div>
   );
 }
 

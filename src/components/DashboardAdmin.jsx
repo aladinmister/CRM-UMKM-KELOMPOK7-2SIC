@@ -1,109 +1,117 @@
-import React from 'react'
-import {
-  Chart as ChartJS,
-  CategoryScale,
-  LinearScale,
-  BarElement,
-  LineElement,
-  PointElement,
-  Title,
-  Tooltip,
-  Legend,
-} from 'chart.js'
-import { Bar, Line } from 'react-chartjs-2'
-
-ChartJS.register(
-  CategoryScale,
-  LinearScale,
-  BarElement,
-  LineElement,
-  PointElement,
-  Title,
-  Tooltip,
-  Legend
-)
+import React, { useEffect, useState } from "react";
+import axios from "axios";
+import CountUp from "react-countup";
+import { motion } from "framer-motion";
 
 const DashboardAdmin = () => {
-  // Data summary cards
-  const stats = [
-    { label: "Pendapatan Hari Ini", value: "$53,000", percent: "+55%", color: "green" },
-    { label: "Pengguna Hari Ini", value: "2,300", percent: "+3%", color: "blue" },
-    { label: "Klien Baru", value: "+3,462", percent: "-2%", color: "red" },
-    { label: "Penjualan", value: "$103,430", percent: "+5%", color: "purple" },
-  ]
+  const [imageCharts, setImageCharts] = useState({});
+  const [loading, setLoading] = useState(true);
+  const [summary, setSummary] = useState({ total: 0, income: 0, monthly_income: 0 });
 
-  // Data untuk grafik Penjualan Bulanan (Bar Chart)
-  const barData = {
-    labels: ["Jan", "Feb", "Mar", "Apr", "Mei", "Jun", "Jul", "Agu", "Sep", "Okt", "Nov", "Des"],
-    datasets: [
-      {
-        label: "Penjualan (dalam ribuan $)",
-        data: [12, 19, 14, 17, 22, 30, 28, 26, 32, 35, 40, 45],
-        backgroundColor: "rgba(99, 102, 241, 0.7)", // purple-600
-      },
-    ],
-  }
+  useEffect(() => {
+    axios
+      .get("https://ahm.inspirasienergiprimanusa.com/api/servis-grafik")
+      .then((res) => {
+        const {
+          pie_jenis_servis,
+          bar_tipe_kendaraan,
+          bar_sparepart_top10,
+          bar_sparepart_per_kendaraan,
+          confusion_matrix,
+        } = res.data;
 
-  const barOptions = {
-    responsive: true,
-    plugins: {
-      legend: { position: 'top' },
-      title: { display: true, text: 'Penjualan Bulanan Tahun Ini' },
-    },
-  }
+        setImageCharts({
+          pie_jenis_servis,
+          bar_tipe_kendaraan,
+          bar_sparepart_top10,
+          bar_sparepart_per_kendaraan,
+          confusion_matrix,
+        });
+        setLoading(false);
+      })
+      .catch((err) => {
+        console.error("Gagal memuat data grafik:", err);
+        setLoading(false);
+      });
 
-  // Data untuk grafik Pertumbuhan Pelanggan (Line Chart)
-  const lineData = {
-    labels: ["Jan", "Feb", "Mar", "Apr", "Mei", "Jun", "Jul", "Agu", "Sep", "Okt", "Nov", "Des"],
-    datasets: [
-      {
-        label: "Jumlah Pelanggan",
-        data: [50, 75, 120, 180, 220, 260, 300, 350, 400, 430, 460, 500],
-        borderColor: "rgba(59, 130, 246, 1)", // blue-500
-        backgroundColor: "rgba(59, 130, 246, 0.3)",
-        fill: true,
-        tension: 0.3,
-        pointRadius: 4,
-      },
-    ],
-  }
+    axios
+      .get("https://ahm.inspirasienergiprimanusa.com/api/summary-transaksi")
+      .then((res) => {
+        setSummary(res.data);
+      })
+      .catch((err) => console.error("Gagal memuat summary transaksi:", err));
+  }, []);
 
-  const lineOptions = {
-    responsive: true,
-    plugins: {
-      legend: { position: 'top' },
-      title: { display: true, text: 'Pertumbuhan Pelanggan Tahun Ini' },
-    },
+  if (loading) {
+    return <p className="text-center text-gray-500 py-10">Memuat grafik...</p>;
   }
 
   return (
-    <div className="p-6 space-y-8">
-      {/* Statistik utama */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        {stats.map(({ label, value, percent, color }) => (
-          <div key={label} className="bg-white rounded-xl shadow p-5">
-            <p className="text-sm text-gray-500">{label}</p>
-            <h2 className={`text-2xl font-bold text-${color}-600 flex items-center gap-2`}>
-              {value}
-              <span className={`text-xs font-semibold text-${color}-500`}>{percent}</span>
+    <div className="max-w-7xl mx-auto px-4 py-10 space-y-10 font-sans">
+      {/* Kartu Ringkasan */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+          className="bg-gradient-to-br from-red-600 to-red-700 text-white p-6 rounded-xl shadow-xl hover:scale-105 transition-transform"
+        >
+          <h3 className="text-lg font-semibold mb-2">Total Transaksi Berhasil</h3>
+          <p className="text-3xl font-bold">
+            <CountUp end={summary.total} duration={2} separator="," /> transaksi
+          </p>
+        </motion.div>
+
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6 }}
+          className="bg-gradient-to-br from-red-500 to-yellow-500 text-white p-6 rounded-xl shadow-xl hover:scale-105 transition-transform"
+        >
+          <h3 className="text-lg font-semibold mb-2">Total Pendapatan</h3>
+          <p className="text-3xl font-bold">
+            Rp <CountUp end={summary.income} duration={2} separator="," />
+          </p>
+        </motion.div>
+
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.7 }}
+          className="bg-gradient-to-br from-yellow-600 to-red-500 text-white p-6 rounded-xl shadow-xl hover:scale-105 transition-transform"
+        >
+          <h3 className="text-lg font-semibold mb-2">Pendapatan Bulan Ini</h3>
+          <p className="text-3xl font-bold">
+            Rp <CountUp end={summary.monthly_income} duration={2} separator="," />
+          </p>
+        </motion.div>
+      </div>
+
+      {/* Grafik */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {Object.entries(imageCharts).map(([key, base64], index) => (
+          <motion.div
+            key={index}
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.5 + index * 0.1 }}
+            className="bg-white rounded-xl p-4 shadow-lg hover:shadow-xl transition-shadow"
+          >
+            <h2 className="text-lg font-semibold text-center text-red-700 mb-3 capitalize">
+              📊 {key.replace(/_/g, " ")}
             </h2>
-          </div>
+            <div className="flex justify-center">
+              <img
+                src={`data:image/png;base64,${base64}`}
+                alt={`Grafik ${key}`}
+                className="rounded-md max-h-72 object-contain"
+              />
+            </div>
+          </motion.div>
         ))}
       </div>
-
-      {/* Grafik Penjualan Bulanan */}
-      <div className="bg-white rounded-xl shadow p-6">
-        <Bar options={barOptions} data={barData} />
-      </div>
-
-      {/* Grafik Pertumbuhan Pelanggan */}
-      <div className="bg-white rounded-xl shadow p-6">
-        <Line options={lineOptions} data={lineData} />
-      </div>
     </div>
-  )
-}
+  );
+};
 
-export default DashboardAdmin
-
-
+export default DashboardAdmin;

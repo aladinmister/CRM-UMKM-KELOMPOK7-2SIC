@@ -16,6 +16,7 @@ function PembelianNew() {
     const [success, setSuccess] = useState('');
     const [selectedOrder, setSelectedOrder] = useState(null);
     const [unreadCount, setUnreadCount] = useState(0);
+    const [expandedOrders, setExpandedOrders] = useState(new Set());
 
     // Format Rupiah
     const formatRupiah = (value) => {
@@ -42,8 +43,13 @@ function PembelianNew() {
             const res = await axios.get(`${API_BASE_URL}/api/transaksi`, { params });
 
             if (res.data?.status === 'success') {
-                setData(res.data.data || []);
-                setUnreadCount(res.data.data.filter(t => !t.read_at).length);
+                const orders = res.data.data || [];
+                setData(orders);
+                
+                // Count unread orders
+                const newUnreadCount = orders.filter(t => !t.read_at).length;
+                setUnreadCount(newUnreadCount);
+                
                 setSuccess('Data transaksi berhasil dimuat');
             } else {
                 throw new Error(res.data?.message || 'Gagal mengambil data');
@@ -60,13 +66,38 @@ function PembelianNew() {
     const markAsRead = async (orderId) => {
         try {
             await axios.put(`${API_BASE_URL}/api/transaksi/${orderId}/mark-as-read`);
+            
+            // Update the order's read status locally
             setData(data.map(item => 
                 item.order_id === orderId ? { ...item, read_at: new Date().toISOString() } : item
             ));
-            setUnreadCount(prev => Math.max(0, prev - 1));
+            
+            // Decrement unread count if this order was previously unread
+            const order = data.find(o => o.order_id === orderId);
+            if (order && !order.read_at) {
+                setUnreadCount(prev => Math.max(0, prev - 1));
+            }
         } catch (err) {
             console.error('Gagal menandai sebagai sudah dibaca:', err);
         }
+    };
+
+    // Toggle order details view
+    const toggleOrderDetails = (orderId) => {
+        const newExpanded = new Set(expandedOrders);
+        if (newExpanded.has(orderId)) {
+            newExpanded.delete(orderId);
+        } else {
+            newExpanded.add(orderId);
+            
+            // Mark as read when expanding if not already read
+            const order = data.find(o => o.order_id === orderId);
+            if (order && !order.read_at) {
+                markAsRead(orderId);
+            }
+        }
+        setExpandedOrders(newExpanded);
+        setSelectedOrder(newExpanded.has(orderId) ? orderId : null);
     };
 
     // Update status pengiriman
@@ -403,13 +434,10 @@ function PembelianNew() {
                                     </div>
                                     <div className="flex space-x-2">
                                         <button
-                                            onClick={() => {
-                                                setSelectedOrder(selectedOrder === order.order_id ? null : order.order_id);
-                                                if (!order.read_at) markAsRead(order.order_id);
-                                            }}
+                                            onClick={() => toggleOrderDetails(order.order_id)}
                                             className="px-3 py-1 bg-white border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
                                         >
-                                            {selectedOrder === order.order_id ? 'Tutup Detail' : 'Lihat Detail'}
+                                            {expandedOrders.has(order.order_id) ? 'Tutup Detail' : 'Lihat Detail'}
                                         </button>
 
                                         {['paid', 'lunas'].includes(order.status_pembayaran?.toLowerCase()) && (
@@ -445,7 +473,7 @@ function PembelianNew() {
                             </div>
 
                             {/* Order Details - Expanded View */}
-                            {selectedOrder === order.order_id && (
+                            {expandedOrders.has(order.order_id) && (
                                 <div className="p-4 bg-gray-50 border-t animate-fade-in">
                                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                                         {/* Customer and Shipping Information */}

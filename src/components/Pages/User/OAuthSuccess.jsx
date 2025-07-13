@@ -16,14 +16,24 @@ const OAuthSuccess = () => {
     if (token && role) {
       localStorage.setItem('token', token);
       localStorage.setItem('role', role);
-      navigate(role === 'admin' ? '/dashboardAdmin' : '/');
+
+      // Redirect sesuai role
+      if (role === 'admin') {
+        navigate('/dashboardAdmin');
+      } else {
+        navigate('/');
+      }
     } else {
       alert('Login Google gagal!');
       navigate('/login');
     }
   }, [navigate, location]);
 
-  return <div>Memproses login Google...</div>;
+  return (
+    <div className="flex justify-center items-center h-screen text-red-700 font-semibold text-lg">
+      Memproses login Google...
+    </div>
+  );
 };
 
 export default OAuthSuccess;
