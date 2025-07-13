@@ -1,4 +1,3 @@
-// Login.jsx
 import { useState } from 'react'
 import { Lock, Mail } from 'lucide-react'
 import { useNavigate, Link } from 'react-router-dom'
@@ -11,18 +10,24 @@ const Login = () => {
   const handleSubmit = (e) => {
     e.preventDefault()
 
-    // Login logic
+    // Dummy login - bisa diganti dengan API call
     if (email === 'admin@example.com' && password === 'admin123') {
+      localStorage.setItem('role', 'admin')
       navigate('/dashboardAdmin')
     } else if (email === 'user@example.com' && password === 'user123') {
-      navigate('/dashboardUser')
+      localStorage.setItem('role', 'user')
+      navigate('/')
     } else {
       alert('Email atau password salah.\n\nAdmin:\nadmin@example.com / admin123\nUser:\nuser@example.com / user123')
     }
   }
 
+  const handleGoogleLogin = () => {
+    window.location.href = 'https://ahm.inspirasienergiprimanusa.com/api/login/google'
+  }
+
   return (
-    <div className="flex items-center justify-center min-h-screen bg-gray-100">
+    <div className="flex items-center justify-center min-h-screen bg-gray-100 px-4">
       <form onSubmit={handleSubmit} className="bg-white p-8 rounded-xl shadow-lg w-full max-w-md">
         <h2 className="text-2xl font-bold mb-6 text-center text-gray-800">Login</h2>
 
@@ -54,8 +59,17 @@ const Login = () => {
           Sign In
         </button>
 
+        <button
+          type="button"
+          onClick={handleGoogleLogin}
+          className="mt-4 w-full bg-red-600 text-white py-2 rounded-lg hover:bg-red-700 transition"
+        >
+          Login dengan Google
+        </button>
+
         <p className="text-center text-sm text-gray-500 mt-4">
-          Don't have an account? <Link to="/register" className="text-purple-600 hover:underline">Register</Link>
+          Don't have an account?{' '}
+          <Link to="/register" className="text-purple-600 hover:underline">Register</Link>
         </p>
       </form>
     </div>

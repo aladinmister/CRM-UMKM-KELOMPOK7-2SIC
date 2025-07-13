@@ -1,7 +1,21 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 
 const HeaderUser = ({ totalItem }) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+
+  useEffect(() => {
+    // Cek apakah user sudah login berdasarkan token
+    const token = localStorage.getItem('token');
+    setIsLoggedIn(!!token); // true jika token ada
+  }, []);
+
+  const handleLogout = () => {
+    localStorage.removeItem('token');
+    localStorage.removeItem('role');
+    setIsLoggedIn(false);
+    window.location.href = '/'; // redirect ke halaman home
+  };
 
   return (
     <header className="shadow-md">
@@ -49,12 +63,21 @@ const HeaderUser = ({ totalItem }) => {
             </a>
           </li>
           <li>
-            <a
-              href="/login"
-              className="bg-red-600 text-white px-3 py-1 rounded hover:bg-red-700 transition"
-            >
-              Login
-            </a>
+            {isLoggedIn ? (
+              <button
+                onClick={handleLogout}
+                className="bg-gray-600 text-white px-3 py-1 rounded hover:bg-gray-700 transition"
+              >
+                Logout
+              </button>
+            ) : (
+              <a
+                href="/login"
+                className="bg-red-600 text-white px-3 py-1 rounded hover:bg-red-700 transition"
+              >
+                Login
+              </a>
+            )}
           </li>
         </ul>
       </nav>

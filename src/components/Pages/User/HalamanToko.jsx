@@ -2,8 +2,9 @@ import React, { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 import {
   ShoppingCart, Star, Search, Flame, Sparkles,
-  Heart, PlusCircle, CreditCard, MapPin, Truck, Loader
+  Heart, PlusCircle, CreditCard, MapPin, Truck, Loader, User
 } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 // Daftar kategori produk
 const kategoriList = [
@@ -96,7 +97,17 @@ function getHargaFinal(product) {
 }
 
 // Komponen untuk menampilkan daftar produk
-function ProductSection({ title, icon: Icon, products, addToCart }) {
+function ProductSection({ title, icon: Icon, products, addToCart, isLoggedIn }) {
+  const navigate = useNavigate();
+
+  const handleBuyClick = (product) => {
+    if (!isLoggedIn) {
+      navigate('/login');
+      return;
+    }
+    addToCart({ ...product, harga_final: getHargaFinal(product) });
+  };
+
   return (
     <div className="mb-10">
       <div className="flex items-center gap-2 mb-4">
@@ -110,7 +121,7 @@ function ProductSection({ title, icon: Icon, products, addToCart }) {
 
           return (
             <div key={product.id} className="bg-white rounded-xl shadow hover:shadow-lg transition p-2 flex flex-col">
-           <img src={product.gambar_produk} alt={product.nama_produk} className="w-full h-32 object-cover rounded-lg mb-2" />
+              <img src={product.gambar_produk} alt={product.nama_produk} className="w-full h-32 object-cover rounded-lg mb-2" />
 
               <h3 className="text-sm font-semibold text-gray-800 line-clamp-2 mb-1">{product.nama_produk}</h3>
               <div className="text-xs text-gray-500 flex items-center mb-1">
@@ -127,11 +138,12 @@ function ProductSection({ title, icon: Icon, products, addToCart }) {
                   <div className="text-red-600 font-bold text-sm">Rp{parseInt(product.harga_produk).toLocaleString()}</div>
                 )}
               </div>
-              <div className="flex justify-between items-center mt-auto gap-2">
-                <button className="text-gray-500 hover:text-red-500"><Heart size={20} /></button>
-                <button onClick={() => addToCart({ ...product, harga_final: getHargaFinal(product) })} className="text-gray-600 hover:text-red-600"><PlusCircle size={20} /></button>
-                <button className="ml-auto text-white bg-green-600 hover:bg-green-700 text-xs px-3 py-1 rounded flex items-center gap-1"><CreditCard size={14} /> Beli</button>
-              </div>
+              <button 
+                onClick={() => handleBuyClick(product)}
+                className="mt-2 w-full text-white bg-green-600 hover:bg-green-700 text-xs px-3 py-2 rounded flex items-center justify-center gap-1"
+              >
+                <CreditCard size={14} /> Beli Sekarang
+              </button>
             </div>
           );
         })}
@@ -166,8 +178,13 @@ function Keranjang({
   setShippingOptions,
   notification,
   setNotification,
-  isLoadingShipping
+  isLoadingShipping,
+  customerData,
+  setCustomerData,
+  isLoggedIn
 }) {
+  const navigate = useNavigate();
+  
   // Hitung total harga produk, berat, dan pembayaran
   const totalHargaProduk = cart.reduce((acc, item) => acc + item.harga_final * item.qty, 0);
   const totalPembayaran = totalHargaProduk + (shippingCost || 0);
@@ -215,8 +232,18 @@ function Keranjang({
     setDestinationAddress({ ...destinationAddress, [e.target.name]: e.target.value });
   };
 
+  // Handler untuk perubahan data pelanggan
+  const handleCustomerDataChange = (e) => {
+    setCustomerData({ ...customerData, [e.target.name]: e.target.value });
+  };
+
   // Handler untuk cek ongkos kirim
   const handleCheckOngkir = () => {
+    if (!isLoggedIn) {
+      navigate('/login');
+      return;
+    }
+    
     if (!selectedCity) {
       displayNotification("Harap pilih Kota/Kabupaten tujuan pengiriman.", 'error');
       return;
@@ -252,6 +279,55 @@ function Keranjang({
             {notification.message}
           </div>
         )}
+
+        {/* Form Data Pelanggan */}
+        <div className="bg-gray-50 p-4 rounded-lg">
+          <h4 className="font-bold text-md mb-3 flex items-center gap-2">
+            <User size={18} /> Data Pelanggan
+          </h4>
+          <div className="space-y-3">
+            <div>
+              <label htmlFor="customerName" className="block text-sm font-medium text-gray-700">Nama Lengkap</label>
+              <input
+                type="text"
+                id="customerName"
+                name="name"
+                value={customerData.name}
+                onChange={handleCustomerDataChange}
+                className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-red-500 focus:border-red-500 sm:text-sm"
+                placeholder="Nama lengkap penerima"
+                required
+              />
+            </div>
+            <div>
+              <label htmlFor="customerEmail" className="block text-sm font-medium text-gray-700">Email</label>
+              <input
+                type="email"
+                id="customerEmail"
+                name="email"
+                value={customerData.email}
+                onChange={handleCustomerDataChange}
+                className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-red-500 focus:border-red-500 sm:text-sm"
+                placeholder="Email aktif"
+                required
+              />
+            </div>
+            <div>
+              <label htmlFor="customerPhone" className="block text-sm font-medium text-gray-700">Nomor Telepon</label>
+              <input
+                type="tel"
+                id="customerPhone"
+                name="phone"
+                value={customerData.phone}
+                onChange={handleCustomerDataChange}
+                className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-red-500 focus:border-red-500 sm:text-sm"
+                placeholder="0812-3456-7890"
+                required
+              />
+            </div>
+          </div>
+        </div>
+
         {cart.length === 0 ? (
           <p className="text-gray-500">Keranjang kosong.</p>
         ) : (
@@ -392,7 +468,18 @@ function Keranjang({
           <span className="text-lg font-bold text-red-600">Rp{totalPembayaran.toLocaleString()}</span>
         </div>
         <button
-          onClick={() => handleCheckout(totalPembayaran)}
+          onClick={() => {
+            if (!isLoggedIn) {
+              navigate('/login');
+              return;
+            }
+            // Validasi data pelanggan sebelum checkout
+            if (!customerData.name || !customerData.email || !customerData.phone) {
+              displayNotification("Harap lengkapi data pelanggan (nama, email, dan telepon)", 'error');
+              return;
+            }
+            handleCheckout(totalPembayaran);
+          }}
           disabled={cart.length === 0 || !shippingCourier || !selectedCity || !destinationAddress.detailAddress || !destinationAddress.postalCode || totalPembayaran < 1000} 
           className="w-full bg-green-600 hover:bg-green-700 text-white py-2 rounded text-sm font-semibold"
         >
@@ -403,13 +490,14 @@ function Keranjang({
   );
 }
 
-// Komponen utama halaman toko
 export default function HalamanToko() {
+  const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState('');
   const [cart, setCart] = useState([]);
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [selectedKategori, setSelectedKategori] = useState('');
   const [allProducts, setAllProducts] = useState([]);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
 
   // State untuk pengiriman
   const [provinces, setProvinces] = useState([]);
@@ -426,6 +514,19 @@ export default function HalamanToko() {
   const [shippingCourier, setShippingCourier] = useState('');
   const [notification, setNotification] = useState(null);
   const [isLoadingShipping, setIsLoadingShipping] = useState(false);
+
+  // State untuk data pelanggan
+  const [customerData, setCustomerData] = useState({
+    name: '',
+    email: '',
+    phone: ''
+  });
+
+  // Cek status login saat komponen dimount
+  useEffect(() => {
+    const token = localStorage.getItem('token');
+    setIsLoggedIn(!!token);
+  }, []);
 
   // Fungsi untuk mengambil data produk dari API
   useEffect(() => {
@@ -482,79 +583,84 @@ export default function HalamanToko() {
   }, []);
 
   // Fungsi untuk menghitung ongkos kirim
- const fetchShippingCosts = useCallback(async (weight, destinationCityId) => {
-  setShippingOptions([]); 
-  setShippingCost(0);
-  setShippingCourier('');
-  setIsLoadingShipping(true);
+  const fetchShippingCosts = useCallback(async (weight, destinationCityId) => {
+    setShippingOptions([]); 
+    setShippingCost(0);
+    setShippingCourier('');
+    setIsLoadingShipping(true);
 
-  if (weight === 0 || !destinationCityId) {
-    setNotification({ message: "Berat produk dan tujuan harus diisi untuk cek ongkir.", type: 'error' });
-    setIsLoadingShipping(false);
-    return;
-  }
-
-  const couriers = ['jne', 'pos', 'tiki'];
-
-  try {
-    const responses = await Promise.all(couriers.map(courier =>
-      axios.post(`${RAJAONGKIR_BASE_PROXY_PATH}/${RAJAONGKIR_PACKAGE_TYPE}/cost`, { 
-        origin: RAJAONGKIR_ORIGIN_CITY,
-        originType: 'city',
-        destination: destinationCityId,
-        destinationType: 'city',
-        weight: weight,
-        courier: courier
-      }, {
-        headers: { 'key': RAJAONGKIR_API_KEY }
-      }).catch(error => {
-        console.error(`Error fetching cost for ${courier}:`, error);
-        return { data: { rajaongkir: { status: { code: 500, description: `Failed to fetch for ${courier}` } } } };
-      })
-    ));
-
-    let allOptions = [];
-    let anySuccess = false;
-
-    responses.forEach(res => {
-      if (res.data.rajaongkir.status.code === 200) {
-        anySuccess = true;
-        res.data.rajaongkir.results.forEach(result => {
-          if (result.costs && result.costs.length > 0) {
-            result.costs.forEach(cost => {
-              if (cost.cost && cost.cost.length > 0) {
-                allOptions.push({
-                  courier: result.code,
-                  description: cost.description,
-                  service: cost.service,
-                  cost: cost.cost,
-                  etd: cost.cost[0].etd || 'N/A'
-                });
-              }
-            });
-          }
-        });
-      } else {
-        console.warn(`Gagal mengambil ongkir untuk ${res.data.rajaongkir.query?.courier || 'Unknown'}:`, res.data.rajaongkir.status.description);
-      }
-    });
-
-    setShippingOptions(allOptions);
-    if (!anySuccess || allOptions.length === 0) {
-      setNotification({ message: "Tidak ada opsi pengiriman tersedia untuk tujuan ini atau berat produk tidak valid.", type: 'warning' });
-    } else {
-      setNotification({ message: "Opsi pengiriman berhasil dimuat!", type: 'info' });
+    if (weight === 0 || !destinationCityId) {
+      setNotification({ message: "Berat produk dan tujuan harus diisi untuk cek ongkir.", type: 'error' });
+      setIsLoadingShipping(false);
+      return;
     }
-  } catch (err) {
-    console.error('Gagal fetch ongkos kirim:', err.message);
-    setNotification({ message: "Gagal mengambil ongkos kirim. Pastikan koneksi internet stabil.", type: 'error' });
-  } finally {
-    setIsLoadingShipping(false);
-  }
-}, []);
+
+    const couriers = ['jne', 'pos', 'tiki'];
+
+    try {
+      const responses = await Promise.all(couriers.map(courier =>
+        axios.post(`${RAJAONGKIR_BASE_PROXY_PATH}/${RAJAONGKIR_PACKAGE_TYPE}/cost`, { 
+          origin: RAJAONGKIR_ORIGIN_CITY,
+          originType: 'city',
+          destination: destinationCityId,
+          destinationType: 'city',
+          weight: weight,
+          courier: courier
+        }, {
+          headers: { 'key': RAJAONGKIR_API_KEY }
+        }).catch(error => {
+          console.error(`Error fetching cost for ${courier}:`, error);
+          return { data: { rajaongkir: { status: { code: 500, description: `Failed to fetch for ${courier}` } } } };
+        })
+      ));
+
+      let allOptions = [];
+      let anySuccess = false;
+
+      responses.forEach(res => {
+        if (res.data.rajaongkir.status.code === 200) {
+          anySuccess = true;
+          res.data.rajaongkir.results.forEach(result => {
+            if (result.costs && result.costs.length > 0) {
+              result.costs.forEach(cost => {
+                if (cost.cost && cost.cost.length > 0) {
+                  allOptions.push({
+                    courier: result.code,
+                    description: cost.description,
+                    service: cost.service,
+                    cost: cost.cost,
+                    etd: cost.cost[0].etd || 'N/A'
+                  });
+                }
+              });
+            }
+          });
+        } else {
+          console.warn(`Gagal mengambil ongkir untuk ${res.data.rajaongkir.query?.courier || 'Unknown'}:`, res.data.rajaongkir.status.description);
+        }
+      });
+
+      setShippingOptions(allOptions);
+      if (!anySuccess || allOptions.length === 0) {
+        setNotification({ message: "Tidak ada opsi pengiriman tersedia untuk tujuan ini atau berat produk tidak valid.", type: 'warning' });
+      } else {
+        setNotification({ message: "Opsi pengiriman berhasil dimuat!", type: 'info' });
+      }
+    } catch (err) {
+      console.error('Gagal fetch ongkos kirim:', err.message);
+      setNotification({ message: "Gagal mengambil ongkos kirim. Pastikan koneksi internet stabil.", type: 'error' });
+    } finally {
+      setIsLoadingShipping(false);
+    }
+  }, []);
 
   // Fungsi untuk menambahkan produk ke keranjang
   const addToCart = (product) => {
+    if (!isLoggedIn) {
+      navigate('/login');
+      return;
+    }
+    
     const exist = cart.find((item) => item.id === product.id);
     if (exist) {
       setCart(cart.map((item) => item.id === product.id ? { ...item, qty: item.qty + 1 } : item));
@@ -580,7 +686,21 @@ export default function HalamanToko() {
   };
 
   // Fungsi untuk proses checkout
-const handleCheckout = async (totalPembayaran) => {
+  const handleCheckout = async (totalPembayaran) => {
+    if (!isLoggedIn) {
+      navigate('/login');
+      return;
+    }
+
+    // Validasi data pelanggan
+    if (!customerData.name || !customerData.email || !customerData.phone) {
+      setNotification({
+        message: "Harap lengkapi data pelanggan (nama, email, dan telepon)",
+        type: 'error'
+      });
+      return;
+    }
+
     // Validasi minimal pembayaran
     if (totalPembayaran < 1000) {
       setNotification({
@@ -623,7 +743,10 @@ const handleCheckout = async (totalPembayaran) => {
           detail_alamat: destinationAddress.detailAddress.substring(0, 500),
           kode_pos: destinationAddress.postalCode.toString().substring(0, 10),
           catatan: (destinationAddress.notes || '').substring(0, 500)
-        }
+        },
+        customer_name: customerData.name,
+        customer_email: customerData.email,
+        customer_phone: customerData.phone
       };
 
       // 1. Simpan transaksi ke database
@@ -655,9 +778,9 @@ const handleCheckout = async (totalPembayaran) => {
             quantity: item.qty
           })),
           customer_details: {
-            first_name: "Pelanggan Toko",
-            email: "pelanggan@example.com",
-            phone: "081234567890",
+            first_name: customerData.name,
+            email: customerData.email,
+            phone: customerData.phone,
             shipping_address: {
               address: destinationAddress.detailAddress,
               city: cityName,
@@ -734,6 +857,7 @@ const handleCheckout = async (totalPembayaran) => {
     setSelectedProvince('');
     setSelectedCity('');
     setDestinationAddress({ detailAddress: '', postalCode: '', notes: '' });
+    setCustomerData({ name: '', email: '', phone: '' });
     setShippingOptions([]);
   };
 
@@ -752,15 +876,44 @@ const handleCheckout = async (totalPembayaran) => {
   return (
     <div className="w-full min-h-screen bg-white text-black font-sans">
       <div className="max-w-screen-2xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="flex justify-end items-center mb-6">
-          <button onClick={() => setIsCartOpen(true)} className="relative p-2 text-gray-700 hover:text-red-600">
-            <ShoppingCart size={28} />
-            {cart.length > 0 && (
-              <span className="absolute -top-1 -right-1 bg-red-600 rounded-full text-xs w-5 h-5 flex items-center justify-center text-white font-semibold">
-                {cart.length}
-              </span>
+        <div className="flex justify-between items-center mb-6">
+          <button onClick={() => navigate('/')} className="text-lg font-bold text-red-600">Toko Sparepart</button>
+          <div className="flex items-center gap-4">
+            {isLoggedIn ? (
+              <button 
+                onClick={() => {
+                  localStorage.removeItem('token');
+                  localStorage.removeItem('role');
+                  setIsLoggedIn(false);
+                  navigate('/login');
+                }}
+                className="text-sm text-gray-700 hover:text-red-600"
+              >
+                Logout
+              </button>
+            ) : (
+              <button 
+                onClick={() => navigate('/login')}
+                className="text-sm text-gray-700 hover:text-red-600"
+              >
+                Login
+              </button>
             )}
-          </button>
+            <button onClick={() => {
+              if (!isLoggedIn) {
+                navigate('/login');
+                return;
+              }
+              setIsCartOpen(true);
+            }} className="relative p-2 text-gray-700 hover:text-red-600">
+              <ShoppingCart size={28} />
+              {cart.length > 0 && (
+                <span className="absolute -top-1 -right-1 bg-red-600 rounded-full text-xs w-5 h-5 flex items-center justify-center text-white font-semibold">
+                  {cart.length}
+                </span>
+              )}
+            </button>
+          </div>
         </div>
 
         <Carousel />
@@ -779,9 +932,27 @@ const handleCheckout = async (totalPembayaran) => {
           </div>
         </div>
 
-        <ProductSection title="Promo Spesial" icon={Flame} products={promoProducts} addToCart={addToCart} />
-        <ProductSection title="Produk Baru" icon={Sparkles} products={newProducts} addToCart={addToCart} />
-        <ProductSection title="Produk Lainnya" icon={null} products={normalProducts} addToCart={addToCart} />
+        <ProductSection 
+          title="Promo Spesial" 
+          icon={Flame} 
+          products={promoProducts} 
+          addToCart={addToCart} 
+          isLoggedIn={isLoggedIn} 
+        />
+        <ProductSection 
+          title="Produk Baru" 
+          icon={Sparkles} 
+          products={newProducts} 
+          addToCart={addToCart} 
+          isLoggedIn={isLoggedIn} 
+        />
+        <ProductSection 
+          title="Produk Lainnya" 
+          icon={null} 
+          products={normalProducts} 
+          addToCart={addToCart} 
+          isLoggedIn={isLoggedIn} 
+        />
       </div>
 
       <Keranjang
@@ -810,6 +981,9 @@ const handleCheckout = async (totalPembayaran) => {
         notification={notification}
         setNotification={setNotification}
         isLoadingShipping={isLoadingShipping}
+        customerData={customerData}
+        setCustomerData={setCustomerData}
+        isLoggedIn={isLoggedIn}
       />
     </div>
   );

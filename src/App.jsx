@@ -17,7 +17,8 @@ const DataKaryawan = lazy(() => import('./components/Pages/Admin/DataKaryawan'))
 const InputKaryawan = lazy(() => import('./components/Pages/Admin/InputKaryawan'));
 const ServisChart = lazy(() => import('./components/Pages/Admin/ServisChart'));
 const TransaksiAdmin = lazy(() => import('./components/Pages/Admin/TransaksiAdmin'));
-const PembelianNew = lazy(() => import('./components/Pages/Admin/PembelianNew'));
+const PembelianNew = lazy(() => import('./components/Pages/Admin/PembelianNew'))
+const OAuthSuccess = lazy(() => import('./components/Pages/User/OAuthSuccess'));;
 
 
 
@@ -94,8 +95,10 @@ function App() {
   return (
     <Suspense fallback={<LoadingAHM />}>
       <Routes>
-        <Route path="/login" element={<Login />} />
+           <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
+        <Route path="/oauth-success" element={<OAuthSuccess />} />
+
 
         <Route element={<MainLayoutUser />}>
           <Route path="/" element={<DashboardUser />} />
